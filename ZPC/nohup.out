@@ -1,0 +1,24 @@
+ 
+           ##################################################
+           #      AMPT (A Multi-Phase Transport) model      #
+           #          Version 2.31t5 (StringMelting)        #
+           #                9/21/2023                       #
+           ##################################################
+            
+  EVENT            1 , RUN            1
+  EVENT            2 , RUN            1
+  EVENT            3 , RUN            1
+  EVENT            4 , RUN            1
+  EVENT            5 , RUN            1
+  EVENT            6 , RUN            1
+  EVENT            7 , RUN            1
+  EVENT            8 , RUN            1
+  EVENT            9 , RUN            1
+  EVENT           10 , RUN            1
+  in HJANA2 
+  total number of partons =            0
+  total number of gluons =            0
+  number of independent strings =            0
+wenbin
+#  AMPT started at  2023年 09月 22日 星期五 22:07:39 EDT
+#  AMPT Program finished at  2023年 09月 22日 星期五 22:07:39 EDT
