@@ -12,7 +12,7 @@ cd ../hadronization_urqmd
 cd fragmentation
 make 
 cd ../urqmd_code
-make
+FC=gfortran make
 cd ../../
 cd fastjet_hadron
 make 
