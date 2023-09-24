@@ -18,8 +18,9 @@
 using namespace std;
 using namespace fastjet;
 
-int main(int argc, char* argv[]) {
-    const int Nevent = 10;
+int main(int argv, char* argc[])
+{
+    int Nevent = atoi(argc[1]);
     // selection for final particles which are used to reconstruct jet
     double absetamax = 2.4;
     double particle_ptmin = 0.3; // CMS cut, CMS PAS HIN-21-013
@@ -32,12 +33,10 @@ int main(int argc, char* argv[]) {
     sprintf(inputfile, "particle_list.dat");
     FILE* infile;
     infile = fopen(inputfile,"r");
-    char* stemp1;
+    char stemp1[100];
     char** stemp2;
     int total_number_of_particles, pid, event_id, int_temp, status;
     double px, py, pz, energy, mass, dummpx, dummpy, dummpz, dummpt, weight;
-    double sigmaGen, sigmaErr, pThat, sigmaGen_ev;
-    double weight_sum = 0.0;
     int event_loop_flag = 1;
     int count_event_number = 0;
     
@@ -57,8 +56,7 @@ int main(int argc, char* argv[]) {
             cout << " End the event loop ~~~ " << endl;
             break;
         }
-        fscanf(infile,"%d\n",&total_number_of_particles);
-        //weight_array.push_back(weight);
+        fscanf(infile,"%s %d\n",stemp1, &total_number_of_particles);
         input_particles.clear();
         for (auto i=0; i<total_number_of_particles; i++) {
             if(feof(infile)) {

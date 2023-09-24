@@ -142,8 +142,8 @@ c default settings for CTParam and CTOption cccccccccccccccccccccccccccccc
 
 ccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      call read_osc_header(iret)
-      if(iret.eq.0) stop
+!      call read_osc_header(iret)
+!      if(iret.eq.0) stop
 
  1    continue
 
@@ -390,18 +390,19 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       iret=1
       
-      read (unit=5,fmt=903,err=299,end=299) event, npart, bimp, dummy
+      read(5,*) event, npart, bimp, dummy
 
  903  format (i10,2x,i10,2x,f8.3,2x,f8.3)
 
 c particles
 
       do 99 i=1,npart
-         read(5,904) j, t_ityp(i), 
+         read(5,*) j, t_ityp(i), 
      .        t_px(i), t_py(i), t_pz(i), t_p0(i), t_fmass(i),     
-     .        t_rx(i), t_ry(i), t_rz(i), t_r0(i), t_tform(i)
+     .        t_rx(i), t_ry(i), t_rz(i), t_r0(i)
+         t_tform(i) =  t_r0(i)
  99   continue
-
+      
  904  format (i10,2x,i10,2x,10(D24.16,2x))
 
 c      here now id to ityp/iso3/charge conversion must take place

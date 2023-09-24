@@ -25,7 +25,10 @@ void get_coordinate(vector<double>& parton_x, vector<double>& parton_y, const st
 void findDecayProducts(const Event& event, int particleIndex, vector<int>& decayedParticles);
 ////////////////////////////////////////////
 
-int main() {
+int main(int argv, char* argc[])
+{
+    //string random_str = string(argc[1]);
+    int totalevent = atoi(argc[1]);
     // Set up the Pythia8 configuration.
     Pythia pythia;
     
@@ -38,7 +41,7 @@ int main() {
     // Standard settings
     pythia.readString("HardQCD:all = on");
     pythia.readString("Tune:pp=18");
-    pythia.readString("PhaseSpace:pTHatMin = 400.0");
+    pythia.readString("PhaseSpace:pTHatMin = 500.0");
     pythia.readString("PhaseSpace:pTHatMax = -1.");
 
     /*
@@ -72,7 +75,7 @@ int main() {
     
     // parameter setting
     const double jet_absetamax = 1.6;
-    const double jet_ptmin = 400.0;
+    const double jet_ptmin = 450.0;
     
     //fastjet setting
     // create a jet definition: 
@@ -89,7 +92,6 @@ int main() {
     fastjet::Selector particle_selector = fastjet::SelectorAbsEtaMax(absetamax) && fastjet::SelectorPtMin( particle_ptmin );
     
     // Number of events to generate
-    int totalevent = 10;
     int numEvent = 0;
     output_parton << "# pdgid  px  py  pz  energy  x  y  z  t" << std::endl;
     // Loop over events
@@ -120,9 +122,6 @@ int main() {
         //----------------------------------------------------------
         vector<fastjet::PseudoJet> inclusive_jets = sorted_by_pt( jet_selector(clust_seq.inclusive_jets()) );
         
-        //for (int ii =0; ii < inclusive_jets.size(); ii++) {
-        //    cout << ii << "  " << inclusive_jets[ii].pt() << endl;
-        //}
         if (inclusive_jets.size() == 0 || inclusive_jets[0].pt() < 500.){
             continue;
         } else {

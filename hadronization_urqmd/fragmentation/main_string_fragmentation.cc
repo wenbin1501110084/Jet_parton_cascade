@@ -40,11 +40,11 @@ int main(int argv, char* argc[])
         cout << "cannot open output file:"<< endl
          << output_filename2 << endl;
         return -1;
-    }
+    }   /*
 	output2<<"OSC1997A"<<endl;
 	output2<<"final_id_p_x"<<endl;
 	output2<<" 3DHydro       1.1  (197,    79)+(197,    79)  eqsp  0.1000E+03         1"<<endl;
-	
+	*/
     FILE* infile1;
     infile1 = fopen("zpc.dat","r");
 

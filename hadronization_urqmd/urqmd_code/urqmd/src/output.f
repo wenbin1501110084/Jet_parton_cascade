@@ -350,7 +350,7 @@ c
       ttime=int(timestep*dtimestep+0.01)
       itotcoll=ctag-dectag
       iinelcoll=itotcoll-NBlColl-NElColl
-      write(iou(13),*) npart
+      write(iou(13),*) "#", npart
 !      write(iou(13),202) itotcoll,NElColl,iinelcoll,NBlColl,dectag,
 !     @     NHardRes,NSoftRes,NDecRes
 
