@@ -212,9 +212,10 @@ c
              END IF
              PRINT *, ' EVENT ', J, ', RUN ', K
              imiss=0
+             !print *, "fffffffffff"
  100         CALL HIJING(FRAME, BMIN, BMAX)
              IAINT2(1) = NATT             
-
+              !print *, "dddddddddd"
 clin-6/2009 ctest off
            if(J.eq.-2) then 
               write(98,*) HIPR1

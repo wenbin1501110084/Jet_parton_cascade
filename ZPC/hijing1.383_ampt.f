@@ -212,7 +212,6 @@ clin-parentString:
         DOUBLE PRECISION vxp0,vyp0,vzp0,xstrg0,ystrg0,xstrg,ystrg
 
 cbz1/31/99end
-
         CHARACTER FRAME*8
         DIMENSION SCIP(300,300),RNIP(300,300),SJIP(300,300),JTP(3),
      &                        IPCOL(90000),ITCOL(90000)
@@ -329,7 +328,7 @@ clin-parentString:
      1       xstrg0(MAXPTN),ystrg0(MAXPTN),
      2       xstrg(MAXPTN),ystrg(MAXPTN),istrg0(MAXPTN),istrg(MAXPTN)
         SAVE   
-
+        !PRINT *, ' EVENT dddd'
 clin-9/2023 for jet vn, go directly in front of ZPC:
         if(isoft.eq.4) then
            goto 274
