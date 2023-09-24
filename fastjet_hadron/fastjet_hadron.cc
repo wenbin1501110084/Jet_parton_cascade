@@ -39,7 +39,7 @@ int main(int argv, char* argc[])
     double px, py, pz, energy, mass, dummpx, dummpy, dummpz, dummpt, weight;
     int event_loop_flag = 1;
     int count_event_number = 0;
-    
+    /*
     //output the results to file
     char output_filename[128];
     sprintf(output_filename,"jet_hardons");
@@ -49,6 +49,13 @@ int main(int argv, char* argc[])
              << output_filename << endl;
         return -1;
     }
+    */
+    // open file for output
+    std::string binary_output_filename = "final_state_hard_hadrons.bin";
+    remove(binary_output_filename.c_str());
+    FILE *outbin = NULL;
+    outbin = fopen(binary_output_filename.c_str(), "wb");
+    
     int njetevent_count = 0;
     for (int iev = 0; iev < Nevent; iev ++) {
         if(feof(infile)) {
@@ -99,7 +106,9 @@ int main(int argv, char* argc[])
                 double rx = jy/sqrt(jx*jx + jy*jy); double ry =  -jx/sqrt(jx*jx + jy*jy); double rz =  0.;
 
                 vector<fastjet::PseudoJet> constituents = inclusive_jets[i].constituents();
-                output << njetevent_count << "  " << constituents.size() << endl; 
+                //output << njetevent_count << "  " << constituents.size() << endl; 
+                int size_temp = constituents.size();
+                fwrite(&size_temp, sizeof(int), 1, outbin);
                 for (unsigned int jj=0; jj<constituents.size(); jj++){
                     // rotate into jet going direction into the z-axis (0, 0, 1)
                     double ppx = constituents[jj].px() * (costheta + (1.-costheta)*rx*rx)  
@@ -112,17 +121,29 @@ int main(int argv, char* argc[])
                                + constituents[jj].py() * ((1.-costheta)*ry*rz + sintheta*rx) 
                                + constituents[jj].pz() * (costheta + (1.-costheta)*rz*rz);
                     double pmag = sqrt(ppx*ppx + ppy*ppy + ppz*ppz);
+
                     // Output the constituents inside the jet with the jet going to +z direction
+                    int pidtemp = constituents[jj].user_index();
+                    fwrite(&pidtemp, sizeof(int), 1, outbin);
+                    float array[] = {
+                        static_cast<float>(constituents[jj].m()),
+                        static_cast<float>(sqrt(ppx*ppx + ppy*ppy)), static_cast<float>(atan2(ppy, ppx)),
+                        static_cast<float>(0.5*log((pmag+ppz)/(pmag-ppz))),
+                    };
+                    fwrite(array, sizeof(float), 4, outbin);
+                    /*
                     output << constituents[jj].user_index() << "  " << constituents[jj].m() << "  " 
                            << sqrt(ppx*ppx + ppy*ppy) << "  " << atan2(ppy, ppx) << "  " 
                            << 0.5*log((pmag+ppz)/(pmag-ppz))
                            << endl;
+                   */
                 }
             }
         }
     }
 
     fclose(infile);
-    output.close();
+    //output.close();
+    fclose(outbin);
     return 0;
 }
