@@ -107,9 +107,14 @@ int main(int argv, char* argc[])
 
                 vector<fastjet::PseudoJet> constituents = inclusive_jets[i].constituents();
                 //output << njetevent_count << "  " << constituents.size() << endl; 
-                int size_temp = constituents.size();
-                fwrite(&size_temp, sizeof(int), 1, outbin);
+                int Nparticle = 0;
                 for (unsigned int jj=0; jj<constituents.size(); jj++){
+                    if (constituents[jj].pt() > 0.3 && abs(constituents[jj].eta()) < 2.4 ) Nparticle ++;
+                }
+                //int size_temp = constituents.size();
+                fwrite(&Nparticle, sizeof(int), 1, outbin);
+                for (unsigned int jj=0; jj<constituents.size(); jj++){
+                    if (constituents[jj].pt() <= 0.3 || abs(constituents[jj].eta()) >= 2.4 ) continue;
                     // rotate into jet going direction into the z-axis (0, 0, 1)
                     double ppx = constituents[jj].px() * (costheta + (1.-costheta)*rx*rx)  
                                + constituents[jj].py() * ((1.-costheta)*rx*ry - sintheta*rz) 
@@ -147,3 +152,4 @@ int main(int argv, char* argc[])
     fclose(outbin);
     return 0;
 }
+
