@@ -22,15 +22,31 @@ int main(int argc, char* argv[] )
     output_filenamench = "Nch.dat";// output files of final hadrons
 
     // Read the binary output
+       const char* filename = argv[1];
+
+    // Open the binary file
+    std::ifstream InStream;
+    InStream.precision(15);
+    InStream.open(filename, std::ios::in | std::ios::binary);
+
+    // Check if the file was successfully opened
+    if (!InStream.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return 2; // Return an error code
+    }
+
+    /*
     stringstream strparticle_name;
     strparticle_name << "final_state_hard_hadrons.bin";
     std::ifstream InStream;
     InStream.precision(15);
     string particle_name = strparticle_name.str();
     InStream.open(particle_name.c_str(), std::ios::in | std::ios::binary);
+    */
     double mass, pT, phi, eta;
     float temp;
     double QnAB_0p0_3[11][4] = {0.0}; double QnAB_0p3_3[11][4] = {0.0}; double QnAB_0p5_3[11][4] = {0.0};
+    double meanpT[11][4] = {0.}; int meanpT_event[11][4] = {0};
     //int MAMB_0_3[10] = {0}; int MAMB_0p3_3[10] = {0}; int MAMB_0p5_3[10] = {0}; 
     std::vector<int> NchVector; 
     double Nchbins[12] = {-1., 10., 20., 30., 40., 50., 60., 70., 80., 90., 100., 500.,}; 
@@ -40,6 +56,7 @@ int main(int argc, char* argv[] )
         double QnB_0p0_3_real[4] = {0.}; double QnB_0p3_3_real[4] = {0.}; double QnB_0p5_3_real[4] = {0.}; 
         double QnA_0p0_3_imag[4] = {0.}; double QnA_0p3_3_imag[4] = {0.}; double QnA_0p5_3_imag[4] = {0.}; 
         double QnB_0p0_3_imag[4] = {0.}; double QnB_0p3_3_imag[4] = {0.}; double QnB_0p5_3_imag[4] = {0.}; 
+        double meanpT_temp[4] = {0.};    int meanpT_event_temp[4] = {0};
         // Start one event
         for (auto i=0; i<total_number_of_particles; i++) {
             InStream.read(reinterpret_cast<char*>(&pid), sizeof(int));
@@ -52,7 +69,22 @@ int main(int argc, char* argv[] )
             InStream.read(reinterpret_cast<char*>(&temp), sizeof(float));
             eta = temp;
             //cout <<total_number_of_particles << " " <<  pid << "  " << mass << "  " << pT << "  " << phi << "  " << eta << endl;
+            if (abs(pid) == 211) {
+                meanpT_event_temp[1] = meanpT_event_temp[1] +1;
+                meanpT_temp[1] = meanpT_temp[1] + pT;
+            }
+            if (abs(pid) == 321) {
+                meanpT_event_temp[2] = meanpT_event_temp[2] +1;
+                meanpT_temp[2] = meanpT_temp[2] + pT;
+            }
+            if (abs(pid) == 2212) {
+                meanpT_event_temp[3] = meanpT_event_temp[3] +1;
+                meanpT_temp[3] = meanpT_temp[3] + pT;
+            }
+            
             if (abs(pid)==211 || abs(pid) == 321 || abs(pid) == 2212) {
+                meanpT_event_temp[0] = meanpT_event_temp[0] +1;
+                meanpT_temp[0] = meanpT_temp[0] + pT;
                 Nchtemp ++;
                 if (pT < 3.0) {
                     // pT > 0.5
@@ -100,12 +132,14 @@ int main(int argc, char* argv[] )
         for (auto inch=0; inch<11; inch++) {
             if (Nchtemp > Nchbins[inch] && Nchtemp <= Nchbins[inch+1]) {
                 for (int iorder=0; iorder<4; iorder++) {
-                    QnAB_0p0_3[inch][iorder] = QnA_0p0_3_real[iorder] * QnA_0p0_3_real[iorder] 
-                                             + QnA_0p0_3_imag[iorder] * QnA_0p0_3_imag[iorder];
-                    QnAB_0p3_3[inch][iorder] = QnA_0p3_3_real[iorder] * QnA_0p3_3_real[iorder] 
-                                             + QnA_0p3_3_imag[iorder] * QnA_0p3_3_imag[iorder];
-                    QnAB_0p5_3[inch][iorder] = QnA_0p5_3_real[iorder] * QnA_0p5_3_real[iorder] 
-                                             + QnA_0p5_3_imag[iorder] * QnA_0p5_3_imag[iorder];
+                    QnAB_0p0_3[inch][iorder] = QnAB_0p0_3[inch][iorder] + QnA_0p0_3_real[iorder] * QnA_0p0_3_real[iorder] 
+                                                                        + QnA_0p0_3_imag[iorder] * QnA_0p0_3_imag[iorder];
+                    QnAB_0p3_3[inch][iorder] = QnAB_0p3_3[inch][iorder] + QnA_0p3_3_real[iorder] * QnA_0p3_3_real[iorder] 
+                                                                        + QnA_0p3_3_imag[iorder] * QnA_0p3_3_imag[iorder];
+                    QnAB_0p5_3[inch][iorder] = QnAB_0p5_3[inch][iorder] + QnA_0p5_3_real[iorder] * QnA_0p5_3_real[iorder] 
+                                                                        + QnA_0p5_3_imag[iorder] * QnA_0p5_3_imag[iorder];
+                    meanpT[inch][iorder]           = meanpT[inch][iorder] + meanpT_temp[iorder];
+                    meanpT_event[inch][iorder]     = meanpT_event[inch][iorder] + meanpT_event_temp[iorder];
                 }
             }
         }
@@ -118,12 +152,14 @@ int main(int argc, char* argv[] )
          << output_filename2 << endl;
         return -1;
     }
-    output2 << " # Qn ( n = 0,1,2,3) of 0.0<pT<3.0, 0.3<pT<3.0, 0.5<pT<3.0 " << endl;
+    output2 << " # Qn ( n = 0,1,2,3) of 0.0<pT<3.0, 0.3<pT<3.0, 0.5<pT<3.0 total_pT event_of_total_pT (charged, pi, k, p) " << endl;
     for (auto inch=0; inch<11; inch++) {
         for (int iorder=0; iorder<4; iorder++) {
             output2 << QnAB_0p0_3[inch][iorder] << "  "
                     << QnAB_0p3_3[inch][iorder] << "  "
-                    << QnAB_0p5_3[inch][iorder] << "  ";
+                    << QnAB_0p5_3[inch][iorder] << "  "
+                    << meanpT[inch][iorder] << "  "
+                    << meanpT_event[inch][iorder] << "  ";
         }
         output2 << endl;
     }
