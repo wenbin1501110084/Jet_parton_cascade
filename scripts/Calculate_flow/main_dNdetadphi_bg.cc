@@ -146,7 +146,7 @@ int main(int argc, char* argv[] )
                         binDeltaEta = static_cast<int>((deltaEta - minEta) / (maxEta - minEta) * nBinsEta);
                         binDeltaPhi = static_cast<int>((deltaPhiVal - minPhi) / (maxPhi - minPhi) * nBinsPhi);
                         // Check bounds
-                        if (binDeltaEta < 70) {
+                        if (binDeltaEta < nBinsEta && binDeltaEta >-1) {
                             Shistogram00[inch][binDeltaEta][binDeltaPhi]++;
                         }
                         
@@ -164,7 +164,7 @@ int main(int argc, char* argv[] )
                         int binDeltaPhi = static_cast<int>((deltaPhiVal - minPhi) / (maxPhi - minPhi) * nBinsPhi);
         
                         // Check bounds
-                        if (binDeltaEta < 70) {
+                        if (binDeltaEta < nBinsEta && binDeltaEta >-1 ) {
                             Shistogram03[inch][binDeltaEta][binDeltaPhi]++;
                         }
                     }
@@ -181,7 +181,7 @@ int main(int argc, char* argv[] )
                         int binDeltaPhi = static_cast<int>((deltaPhiVal - minPhi) / (maxPhi - minPhi) * nBinsPhi);
     
                         // Check bounds
-                        if (binDeltaEta < 70) {
+                        if (binDeltaEta < nBinsEta && binDeltaEta >-1) {
                             Shistogram05[inch][binDeltaEta][binDeltaPhi]++;
                         }
                     }
