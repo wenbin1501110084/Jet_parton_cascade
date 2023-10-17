@@ -23,7 +23,7 @@ int main(int argc, char* argv[] )
 
     // Read the binary output
        const char* filename = argv[1];
-
+       // std::string fullPath = "..//" + std::string(relativePath);
     // Open the binary file
     std::ifstream InStream;
     InStream.precision(15);
@@ -43,20 +43,34 @@ int main(int argc, char* argv[] )
     string particle_name = strparticle_name.str();
     InStream.open(particle_name.c_str(), std::ios::in | std::ios::binary);
     */
+    const int roweta = 100; const double deta = 0.1; int Deltaeta = 2.0/deta;
+    const double minEta = 0.0; const double maxEta = 10.;
+
+    int Nchtemp;
     double mass, pT, phi, eta;
     float temp;
+    double pTlab, philab, etalab;
     double QnAB_0p0_3[11][4] = {0.0}; double QnAB_0p3_3[11][4] = {0.0}; double QnAB_0p5_3[11][4] = {0.0};
     double meanpT[11][4] = {0.}; int meanpT_event[11][4] = {0};
     //int MAMB_0_3[10] = {0}; int MAMB_0p3_3[10] = {0}; int MAMB_0p5_3[10] = {0}; 
     std::vector<int> NchVector; 
     double Nchbins[12] = {-1., 10., 20., 30., 40., 50., 60., 70., 80., 90., 100., 500.,}; 
-    while( InStream.read(reinterpret_cast<char*>(&total_number_of_particles), sizeof(int))) {
-        int Nchtemp = 0;
-        double QnA_0p0_3_real[4] = {0.}; double QnA_0p3_3_real[4] = {0.}; double QnA_0p5_3_real[4] = {0.}; 
-        double QnB_0p0_3_real[4] = {0.}; double QnB_0p3_3_real[4] = {0.}; double QnB_0p5_3_real[4] = {0.}; 
-        double QnA_0p0_3_imag[4] = {0.}; double QnA_0p3_3_imag[4] = {0.}; double QnA_0p5_3_imag[4] = {0.}; 
-        double QnB_0p0_3_imag[4] = {0.}; double QnB_0p3_3_imag[4] = {0.}; double QnB_0p5_3_imag[4] = {0.}; 
+    //int Nchtemp;
+    /*
+    double QnA_0p0_3_real[roweta][4] = {0.}; double QnA_0p3_3_real[roweta][4] = {0.}; double QnA_0p5_3_real[roweta][4] = {0.};
+        double QnB_0p0_3_real[roweta][4] = {0.}; double QnB_0p3_3_real[roweta][4] = {0.}; double QnB_0p5_3_real[roweta][4] = {0.};
+        double QnA_0p0_3_imag[roweta][4] = {0.}; double QnA_0p3_3_imag[roweta][4] = {0.}; double QnA_0p5_3_imag[roweta][4] = {0.};
+        double QnB_0p0_3_imag[roweta][4] = {0.}; double QnB_0p3_3_imag[roweta][4] = {0.}; double QnB_0p5_3_imag[roweta][4] = {0.};
         double meanpT_temp[4] = {0.};    int meanpT_event_temp[4] = {0};
+    */
+
+    while( InStream.read(reinterpret_cast<char*>(&total_number_of_particles), sizeof(int))) {
+        Nchtemp = 0;
+      double QnA_0p0_3_real[roweta][4] = {0.}; double QnA_0p3_3_real[roweta][4] = {0.}; double QnA_0p5_3_real[roweta][4] = {0.}; 
+       double QnB_0p0_3_real[roweta][4] = {0.};double QnB_0p3_3_real[roweta][4] = {0.}; double QnB_0p5_3_real[roweta][4] = {0.}; 
+        double QnA_0p0_3_imag[roweta][4] = {0.}; double QnA_0p3_3_imag[roweta][4] = {0.};double QnA_0p5_3_imag[roweta][4] = {0.}; 
+        double QnB_0p0_3_imag[roweta][4] = {0.}; double QnB_0p3_3_imag[roweta][4] = {0.}; double QnB_0p5_3_imag[roweta][4] = {0.}; 
+        double meanpT_temp[4] = {0.};  double meanpT_event_temp[4] = {0};
         // Start one event
         for (auto i=0; i<total_number_of_particles; i++) {
             InStream.read(reinterpret_cast<char*>(&pid), sizeof(int));
@@ -68,7 +82,15 @@ int main(int argc, char* argv[] )
             phi = temp;
             InStream.read(reinterpret_cast<char*>(&temp), sizeof(float));
             eta = temp;
-            //cout <<total_number_of_particles << " " <<  pid << "  " << mass << "  " << pT << "  " << phi << "  " << eta << endl;
+            /*
+            InStream.read(reinterpret_cast<char*>(&temp), sizeof(float));
+            pTlab = temp;
+            InStream.read(reinterpret_cast<char*>(&temp), sizeof(float));
+            philab = temp;
+            InStream.read(reinterpret_cast<char*>(&temp), sizeof(float));
+            etalab = temp;
+            */
+           // cout <<total_number_of_particles << " " <<  pid << "  " << mass << "  " << pT << "  " << phi << "  " << eta << endl;
             if (abs(pid) == 211) {
                 meanpT_event_temp[1] = meanpT_event_temp[1] +1;
                 meanpT_temp[1] = meanpT_temp[1] + pT;
@@ -85,59 +107,74 @@ int main(int argc, char* argv[] )
             if (abs(pid)==211 || abs(pid) == 321 || abs(pid) == 2212) {
                 meanpT_event_temp[0] = meanpT_event_temp[0] +1;
                 meanpT_temp[0] = meanpT_temp[0] + pT;
-                Nchtemp ++;
+                Nchtemp =Nchtemp +1;
                 if (pT < 3.0) {
                     // pT > 0.5
+                    int binDeltaEta = static_cast<int>((eta - minEta) / (maxEta - minEta) * roweta);
+                    if (binDeltaEta > roweta) continue;
+                    if (binDeltaEta < 0) continue;
                     if (pT > 0.5) {
                         for (auto iorder = 0; iorder < 4; iorder++) {
-                            if (eta > 1.0) {
-                                QnA_0p5_3_real[iorder] = QnA_0p5_3_real[iorder] + cos(iorder * 1. * phi);
-                                QnA_0p5_3_imag[iorder] = QnA_0p5_3_imag[iorder] + sin(iorder * 1. * phi);
-                            }
-                            if (eta < -1.0) {
-                                QnB_0p5_3_real[iorder] = QnB_0p5_3_real[iorder] + cos(iorder * 1. * phi);
-                                QnB_0p5_3_imag[iorder] = QnB_0p5_3_imag[iorder] + sin(iorder * 1. * phi);
-                            }
+                            //if (eta > 1.0) {
+                                QnA_0p5_3_real[binDeltaEta][iorder] = QnA_0p5_3_real[binDeltaEta][iorder] + cos(iorder * 1. * phi);
+                                QnA_0p5_3_imag[binDeltaEta][iorder] = QnA_0p5_3_imag[binDeltaEta][iorder] + sin(iorder * 1. * phi);
+                            //}
+                            //if (eta < -1.0) {
+                                QnB_0p5_3_real[binDeltaEta][iorder] = QnB_0p5_3_real[binDeltaEta][iorder] + cos(iorder * 1. * phi);
+                                QnB_0p5_3_imag[binDeltaEta][iorder] = QnB_0p5_3_imag[binDeltaEta][iorder] + sin(iorder * 1. * phi);
+                            //}
                         }
                     }
                     // pT > 0.3
                     if (pT > 0.3) {
                         for (auto iorder = 0; iorder < 4; iorder++) {
-                            if (eta > 1.0) {
-                                QnA_0p3_3_real[iorder] = QnA_0p3_3_real[iorder] + cos(iorder * 1. * phi);
-                                QnA_0p3_3_imag[iorder] = QnA_0p3_3_imag[iorder] + sin(iorder * 1. * phi);
-                            }
-                            if (eta < -1.0) {
-                                QnB_0p3_3_real[iorder] = QnB_0p3_3_real[iorder] + cos(iorder * 1. * phi);
-                                QnB_0p3_3_imag[iorder] = QnB_0p3_3_imag[iorder] + sin(iorder * 1. * phi);
-                            }
+                            //if (eta > 1.0) {
+                                QnA_0p3_3_real[binDeltaEta][iorder] = QnA_0p3_3_real[binDeltaEta][iorder] + cos(iorder * 1. * phi);
+                                QnA_0p3_3_imag[binDeltaEta][iorder] = QnA_0p3_3_imag[binDeltaEta][iorder] + sin(iorder * 1. * phi);
+                            //}
+                            // if (eta < -1.0) {
+                                QnB_0p3_3_real[binDeltaEta][iorder] = QnB_0p3_3_real[binDeltaEta][iorder] + cos(iorder * 1. * phi);
+                                QnB_0p3_3_imag[binDeltaEta][iorder] = QnB_0p3_3_imag[binDeltaEta][iorder] + sin(iorder * 1. * phi);
+                            // }
                         }
                     }
                     // pT > 0.0
                         for (auto iorder = 0; iorder < 4; iorder++) {
-                            if (eta > 1.0) {
-                                QnA_0p0_3_real[iorder] = QnA_0p0_3_real[iorder] + cos(iorder * 1. * phi);
-                                QnA_0p0_3_imag[iorder] = QnA_0p0_3_imag[iorder] + sin(iorder * 1. * phi);
-                            }
-                            if (eta < -1.0) {
-                                QnB_0p0_3_real[iorder] = QnB_0p0_3_real[iorder] + cos(iorder * 1. * phi);
-                                QnB_0p0_3_imag[iorder] = QnB_0p0_3_imag[iorder] + sin(iorder * 1. * phi);
-                            }
+                            //if (eta > 1.0) {
+                                QnA_0p0_3_real[binDeltaEta][iorder] = QnA_0p0_3_real[binDeltaEta][iorder] + cos(iorder * 1. * phi);
+                                QnA_0p0_3_imag[binDeltaEta][iorder] = QnA_0p0_3_imag[binDeltaEta][iorder] + sin(iorder * 1. * phi);
+                            //}
+                            //if (eta < -1.0) {
+                                QnB_0p0_3_real[binDeltaEta][iorder] = QnB_0p0_3_real[binDeltaEta][iorder] + cos(iorder * 1. * phi);
+                                QnB_0p0_3_imag[binDeltaEta][iorder] = QnB_0p0_3_imag[binDeltaEta][iorder] + sin(iorder * 1. * phi);
+                            //}
                         }
                 }
             }
         }
+        if (Nchtemp == 0) continue;
+        //cout << Nchtemp << endl;
         NchVector.push_back(Nchtemp);
         // Then Calculate the QAQB
         for (auto inch=0; inch<11; inch++) {
             if (Nchtemp > Nchbins[inch] && Nchtemp <= Nchbins[inch+1]) {
                 for (int iorder=0; iorder<4; iorder++) {
-                    QnAB_0p0_3[inch][iorder] = QnAB_0p0_3[inch][iorder] + QnA_0p0_3_real[iorder] * QnA_0p0_3_real[iorder] 
-                                                                        + QnA_0p0_3_imag[iorder] * QnA_0p0_3_imag[iorder];
-                    QnAB_0p3_3[inch][iorder] = QnAB_0p3_3[inch][iorder] + QnA_0p3_3_real[iorder] * QnA_0p3_3_real[iorder] 
-                                                                        + QnA_0p3_3_imag[iorder] * QnA_0p3_3_imag[iorder];
-                    QnAB_0p5_3[inch][iorder] = QnAB_0p5_3[inch][iorder] + QnA_0p5_3_real[iorder] * QnA_0p5_3_real[iorder] 
-                                                                        + QnA_0p5_3_imag[iorder] * QnA_0p5_3_imag[iorder];
+                    double sumtep00 = 0.; double sumtep03 = 0.0; double sumtep05 = 0.;
+                    for (int ieta=0; ieta<(roweta - Deltaeta); ieta++) {
+                        for (int ietab=(ieta+Deltaeta); ietab<roweta; ietab++) {
+                            sumtep00 = sumtep00 + QnA_0p0_3_real[ieta][iorder] * QnB_0p0_3_real[ietab][iorder] 
+                                                + QnA_0p0_3_imag[ieta][iorder] * QnB_0p0_3_imag[ietab][iorder];
+                            sumtep03 = sumtep03 + QnA_0p3_3_real[ieta][iorder] * QnB_0p3_3_real[ietab][iorder] 
+                                                + QnA_0p3_3_imag[ieta][iorder] * QnB_0p3_3_imag[ietab][iorder];
+                            sumtep05 = sumtep05 + QnA_0p5_3_real[ieta][iorder] * QnB_0p5_3_real[ietab][iorder] 
+                                                + QnA_0p5_3_imag[ieta][iorder] * QnB_0p5_3_imag[ietab][iorder];
+                                                
+                        }
+                    }
+                    
+                    QnAB_0p0_3[inch][iorder] = QnAB_0p0_3[inch][iorder] + sumtep00;
+                    QnAB_0p3_3[inch][iorder] = QnAB_0p3_3[inch][iorder] + sumtep03;
+                    QnAB_0p5_3[inch][iorder] = QnAB_0p5_3[inch][iorder] + sumtep05;
                     meanpT[inch][iorder]           = meanpT[inch][iorder] + meanpT_temp[iorder];
                     meanpT_event[inch][iorder]     = meanpT_event[inch][iorder] + meanpT_event_temp[iorder];
                 }
@@ -145,7 +182,7 @@ int main(int argc, char* argv[] )
         }
     }
     // Then output the Qn and NchVector
-
+    
     ofstream output2(output_filename2.c_str()); 
     if (!output2.is_open() ) {
         cout << "cannot open output file:"<< endl
@@ -173,7 +210,7 @@ int main(int argc, char* argv[] )
     for (int ii=0; ii<NchVector.size(); ii++) {
         outputnch << NchVector[ii] << endl;
     }
-    
+    NchVector.clear(); 
     output2.close();
     outputnch.close();
     InStream.close();
