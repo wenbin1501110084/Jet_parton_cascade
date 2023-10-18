@@ -29,6 +29,7 @@ int main(int argv, char* argc[])
 {
     //string random_str = string(argc[1]);
     int totalevent = atoi(argc[1]);
+    int Spatial_mode = 1; // 0: use the accumulant method; 1: uses the free-streaming to formation time; 
     // Set up the Pythia8 configuration.
     Pythia pythia;
     
@@ -40,21 +41,31 @@ int main(int argv, char* argc[])
     pythia.readString("Beams:idB = 2212"); //2212 is proton; 1000791970 for 197Au; 1000822080 for 208Pb;
     // Standard settings
     pythia.readString("HardQCD:all = on");
-    pythia.readString("Tune:pp=18");
     pythia.readString("PhaseSpace:pTHatMin = 500.0");
     pythia.readString("PhaseSpace:pTHatMax = -1.");
 
-    /*
-    pythia.readString("PDF:useHard = on");
-    pythia.readString("PDF:nPDFBeamB=100791970");
-    pythia.readString("PDF:useHardNPDFB = on");
-    pythia.readString("PDF:nPDFSetB=3");
-    pythia.readString("PDF:nPDFBeamA=1000791970");
-    pythia.readString("PDF:useHardNPDFA = on");
-    pythia.readString("PDF:nPDFSetA=3");
-    pythia.readString("TimeShower:pTmin=2.0"); // the mimum value of showed parton Wenbin
-    pythia.readString("TimeShower:nGluonToQuark=3");
-    */
+    // CMS CP5 setting
+    pythia.readString("Tune:pp=14");
+    pythia.readString("Tune:ee=7");
+    pythia.readString("MultipartonInteractions:ecmPow=0.03344");
+    pythia.readString("MultipartonInteractions:bProfile=2");
+    pythia.readString("MultipartonInteractions:pT0Ref=1.407");
+    pythia.readString("MultipartonInteractions:coreRadius=0.6671");
+    pythia.readString("MultipartonInteractions:coreFraction=0.4281");
+    pythia.readString("ColourReconnection:range=4.881");
+    pythia.readString("SigmaTotal:zeroAXB=off");
+    pythia.readString("SpaceShower:alphaSorder=2");
+    pythia.readString("SpaceShower:alphaSvalue=0.118");
+    pythia.readString("SigmaProcess:alphaSvalue=0.118");
+    pythia.readString("SigmaProcess:alphaSorder=2");
+    pythia.readString("MultipartonInteractions:alphaSvalue=0.118");
+    pythia.readString("MultipartonInteractions:alphaSorder=2");
+    pythia.readString("TimeShower:alphaSorder=2");
+    pythia.readString("TimeShower:alphaSvalue=0.118");
+    pythia.readString("SigmaTotal:mode = 0");
+    pythia.readString("SigmaTotal:sigmaEl = 21.89");
+    pythia.readString("SigmaTotal:sigmaTot = 100.309");
+    
     pythia.readString("HadronLevel:Hadronize = off");
     // Initialize Pythia
     if (!pythia.init()) {
@@ -456,6 +467,11 @@ int main(int argv, char* argc[])
                 double py = particle.py();
                 double pz = particle.pz();
                 double energy = particle.e();
+                if (Spatial_mode == 1) {
+                    position[1] = 0.0 + position[0] * px / energy;
+                    position[2] = 0.0 + position[0] * py / energy;
+                    position[3] = 0.0 + position[0] * pz / energy;
+                }
                 output_parton << pdgId << "  " 
                               << px << "  " << py << "  " << pz << "  " << energy <<"  "
                               << position[0] << "  "<< position[1] << "  " << position[2] << "  " << timeplus
