@@ -45,14 +45,16 @@ int main(int argv, char* argc[])
     pythia.readString("PhaseSpace:pTHatMax = -1.");
 
     pythia.readString("Tune:pp=14");
+    pythia.readString("PDF:pSet = 20");
     pythia.readString("Tune:ee=7");
-    pythia.readString("MultipartonInteractions:ecmPow=0.03344");
+    pythia.readString("MultipartonInteractions:ecmPow=0.03");
     pythia.readString("MultipartonInteractions:bProfile=2");
-    pythia.readString("MultipartonInteractions:pT0Ref=1.407");
-    pythia.readString("MultipartonInteractions:coreRadius=0.6671");
-    pythia.readString("MultipartonInteractions:coreFraction=0.4281");
-    pythia.readString("ColourReconnection:range=4.881");
+    pythia.readString("MultipartonInteractions:pT0Ref=1.41");
+    pythia.readString("MultipartonInteractions:coreRadius=0.76");
+    pythia.readString("MultipartonInteractions:coreFraction=0.63");
+    pythia.readString("ColourReconnection:range=5.18");
     pythia.readString("SigmaTotal:zeroAXB=off");
+    pythia.readString("SpaceShower:rapidityOrder=on");
     pythia.readString("SpaceShower:alphaSorder=2");
     pythia.readString("SpaceShower:alphaSvalue=0.118");
     pythia.readString("SigmaProcess:alphaSvalue=0.118");
@@ -64,7 +66,7 @@ int main(int argv, char* argc[])
     pythia.readString("SigmaTotal:mode = 0");
     pythia.readString("SigmaTotal:sigmaEl = 21.89");
     pythia.readString("SigmaTotal:sigmaTot = 100.309");
-    //pythia.readString("PDF:pSet=LHAPDF6:NNPDF31_nnlo_as_0118");
+    pythia.readString("PDF:pSet=LHAPDF6:NNPDF31_nnlo_as_0118");
     
     /*
     pythia.readString("PDF:useHard = on");
