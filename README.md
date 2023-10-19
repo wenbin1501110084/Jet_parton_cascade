@@ -16,3 +16,6 @@ rm -fr LHAPDF-${version}
 echo "downloading pdfsets ... "
 wget http://lhapdfsets.web.cern.ch/lhapdfsets/current/NNPDF31_nnlo_as_0118.tar.gz -O- | tar xz -C $PWD/LHAPDF_Lib/share/LHAPDF
 
+## Then compile pythia8 with LHAPDF ##
+./configure --prefix=/wsu/home/he/he92/he9215/soft_ware/Pythia8_package/pythia8310_install --with-lhapdf6=/wsu/home/he/he92/he9215/soft_ware/LHAPDF_package/LHAPDF_install
+
