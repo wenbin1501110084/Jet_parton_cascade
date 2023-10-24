@@ -28,32 +28,34 @@ void findDecayProducts(const Event& event, int particleIndex, vector<int>& decay
 int main(int argv, char* argc[])
 {
     //string random_str = string(argc[1]);
-    int totalevent = atoi(argc[1]);
     int Spatial_mode = 1; // 0: use the accumulant method; 1: uses the free-streaming to formation time; 
     // Set up the Pythia8 configuration.
     Pythia pythia;
-    
+    string random_str = string(argc[2]);
+    int totalevent = atoi(argc[1]);
     pythia.readString("Random:setSeed = on");
-    pythia.readString("Random:seed = 0");  //92549 792 458 871
-    //pythia.readString("Random:seed = " + std::to_string(initialSeed));
+    //pythia.readString("Random:seed = 0");  //92549 792 458 871
+    pythia.readString("Random:seed = " + random_str);
     pythia.readString("Beams:eCM = 13000.0");//5020,2760 GeV
     pythia.readString("Beams:idA = 2212");
     pythia.readString("Beams:idB = 2212"); //2212 is proton; 1000791970 for 197Au; 1000822080 for 208Pb;
     // Standard settings
     pythia.readString("HardQCD:all = on");
+    //pythia.readString("Tune:pp=18");
     pythia.readString("PhaseSpace:pTHatMin = 500.0");
     pythia.readString("PhaseSpace:pTHatMax = -1.");
 
-    // CMS CP5 setting
     pythia.readString("Tune:pp=14");
+    //pythia.readString("PDF:pSet = 20");
     pythia.readString("Tune:ee=7");
-    pythia.readString("MultipartonInteractions:ecmPow=0.03344");
+    pythia.readString("MultipartonInteractions:ecmPow=0.03");
     pythia.readString("MultipartonInteractions:bProfile=2");
-    pythia.readString("MultipartonInteractions:pT0Ref=1.407");
-    pythia.readString("MultipartonInteractions:coreRadius=0.6671");
-    pythia.readString("MultipartonInteractions:coreFraction=0.4281");
-    pythia.readString("ColourReconnection:range=4.881");
+    pythia.readString("MultipartonInteractions:pT0Ref=1.41");
+    pythia.readString("MultipartonInteractions:coreRadius=0.76");
+    pythia.readString("MultipartonInteractions:coreFraction=0.63");
+    pythia.readString("ColourReconnection:range=5.18");
     pythia.readString("SigmaTotal:zeroAXB=off");
+    pythia.readString("SpaceShower:rapidityOrder=on");
     pythia.readString("SpaceShower:alphaSorder=2");
     pythia.readString("SpaceShower:alphaSvalue=0.118");
     pythia.readString("SigmaProcess:alphaSvalue=0.118");
@@ -63,8 +65,9 @@ int main(int argv, char* argc[])
     pythia.readString("TimeShower:alphaSorder=2");
     pythia.readString("TimeShower:alphaSvalue=0.118");
     pythia.readString("SigmaTotal:mode = 0");
-    pythia.readString("SigmaTotal:sigmaEl = 21.89");
-    pythia.readString("SigmaTotal:sigmaTot = 100.309");
+    pythia.readString("SigmaTotal:sigmaEl = 22.08");
+    pythia.readString("SigmaTotal:sigmaTot = 101.037");
+    pythia.readString("PDF:pSet=LHAPDF6:NNPDF31_nnlo_as_0118");
     
     pythia.readString("HadronLevel:Hadronize = off");
     // Initialize Pythia
