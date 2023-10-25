@@ -19,3 +19,5 @@ wget http://lhapdfsets.web.cern.ch/lhapdfsets/current/NNPDF31_nnlo_as_0118.tar.g
 ## Then compile pythia8 with LHAPDF ##
 ./configure --prefix=/wsu/home/he/he92/he9215/soft_ware/Pythia8_package/pythia8310_install --with-lhapdf6=/wsu/home/he/he92/he9215/soft_ware/LHAPDF_package/LHAPDF_install
 
+Then please remember to copy the Makefile and Makefile.inc in the example folder to the pythia parton folder
+
