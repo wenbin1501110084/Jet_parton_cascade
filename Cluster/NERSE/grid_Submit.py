@@ -6,7 +6,7 @@ from subprocess import call
 import sys
 import random
 import time
-def submit(fold_id_start=0, fold_id_end = 1, nevent = 10, random_number = 0):
+def submit(fold_id_start=0, nfold = 1, nevent = 10, random_number = 0):
     jobs = '''#!/bin/bash
 
 hostname
@@ -15,9 +15,10 @@ date
 
 # First link the file
 
-
+fold_id_start2=$(({fold_id_start} + $1 * {nfold}))
+fold_id_end=$(({fold_id_start} + $1 * {nfold} + {nfold}))
 # Then run the framework
-for (( ii={fold_id_start}; ii<{fold_id_end}; ii++ ))
+for (( ii=$fold_id_start2; ii<$fold_id_end; ii++ ))
 do
 
 cp -r event0 Playground/job-$ii
@@ -26,7 +27,7 @@ cd Playground/job-$ii
 # Generate the pythia parton
 #sleep 1s
 cd pythia_parton
-./mymain06 {nevent} $(({random_number} + $ii * 12345))
+./mymain06 {nevent} $(({random_number} + $ii * 12345 + $1 * 11))
 cd ../
 
 # ZPC for parton cascade
@@ -76,24 +77,24 @@ rm -r pythia_parton
 rm -r ZPC 
 cd ../../
 done
-'''.format(fold_id_start=fold_id_start, fold_id_end = fold_id_end, nevent = nevent, random_number = random_number)
+'''.format(fold_id_start=fold_id_start, nfold = nfold, nevent = nevent, random_number = random_number)
     job_name = "NSC3_%s.sh"%(fold_id_start)
     with open(job_name, 'w') as fout:
         fout.write(jobs)
 
     jobs='''#!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=00:10:00
 #SBATCH --constraint=cpu
-#SBATCH --qos=debug
+#SBATCH --qos=regular
 #SBATCH --account=m3148
 #SBATCH --error=/pscratch/sd/w/wenbinz/V2inJet/log/%J.err
 #SBATCH --output=/pscratch/sd/w/wenbinz/V2inJet/log/%J.out
+#SBATCH --array=0-{nfold}
 chmod -R 777 {job_name}
-srun -n 1 -c 1 ./{job_name}
-    '''.format(job_name = job_name)
+./{job_name} $SLURM_ARRAY_TASK_ID
+    '''.format(job_name = job_name, nfold = nfold)
     job_name2 = "Submit_%s.sh"%(fold_id_start)
     with open(job_name2, 'w') as fout:
         fout.write(jobs)
@@ -118,5 +119,6 @@ if __name__=='__main__':
     random_number = random.randint(0, 10**6)
     #for n in range(0,nods):
     #mmid = fold_id_start * tot_ev + n 
-    submit(fold_id_start * nfold, nfold + fold_id_start * nfold, nevent, random_number + fold_id_start)
+    submit(fold_id_start * nfold * nfold, nfold, nevent, random_number + fold_id_start)
     #start_num += jobs_per_cpu 
+

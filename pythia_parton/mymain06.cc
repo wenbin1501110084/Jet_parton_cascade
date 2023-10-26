@@ -471,9 +471,9 @@ int main(int argv, char* argc[])
                 double pz = particle.pz();
                 double energy = particle.e();
                 if (Spatial_mode == 1) {
-                    position[1] = 0.0 + position[0] * px / energy;
-                    position[2] = 0.0 + position[0] * py / energy;
-                    position[3] = 0.0 + position[0] * pz / energy;
+                    position[0] = 0.0 + timeplus * px / energy;
+                    position[1] = 0.0 + timeplus * py / energy;
+                    position[2] = 0.0 + timeplus * pz / energy;
                 }
                 output_parton << pdgId << "  " 
                               << px << "  " << py << "  " << pz << "  " << energy <<"  "
