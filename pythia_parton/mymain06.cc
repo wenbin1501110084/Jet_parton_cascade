@@ -119,8 +119,9 @@ int main(int argv, char* argc[])
         // First use the fastjet to pre-select the event with jet pT > 500 GeV at parton level
         for (int j = 0; j < event.size(); ++j) {
             Particle& particle = event[j];
-            if (particle.isFinal() &&
-                (fabs(particle.id()) == 1 || fabs(particle.id()) == 2 ||  fabs(particle.id()) == 3 || particle.id() == 21)) {
+            //if (particle.isFinal() &&
+            //    (fabs(particle.id()) == 1 || fabs(particle.id()) == 2 ||  fabs(particle.id()) == 3 || particle.id() == 21)) {
+            if (particle.isFinal() && particle.isParton()) {
                 Nparton++;
                 fastjet::PseudoJet particlefastjet = PseudoJet(particle.px(), particle.py(), particle.pz(), particle.e());
                 particlefastjet.set_user_index(particle.id());
@@ -147,8 +148,9 @@ int main(int argv, char* argc[])
         output_parton << Nparton << std::endl;
         for (int j = 0; j < event.size(); ++j) {
             Particle& particle = event[j];
-            if (particle.isFinal() &&
-                (fabs(particle.id()) == 1 || fabs(particle.id()) == 2 ||  fabs(particle.id()) == 3 || particle.id() == 21)) {
+            //if (particle.isFinal() &&
+            //    (fabs(particle.id()) == 1 || fabs(particle.id()) == 2 ||  fabs(particle.id()) == 3 || particle.id() == 21)) {
+            if ( particle.isFinal() && particle.isParton() ) {
                 double position[3] = {0.0}; // spatial information of partons (x, y, z)
                 position[0] = 0.0;
                 position[1] = 0.0;
@@ -477,7 +479,8 @@ int main(int argv, char* argc[])
                 }
                 output_parton << pdgId << "  " 
                               << px << "  " << py << "  " << pz << "  " << energy <<"  "
-                              << position[0] << "  "<< position[1] << "  " << position[2] << "  " << timeplus
+                              << position[0] << "  "<< position[1] << "  " << position[2] << "  " << timeplus << "  "
+                              << particle.col() << "  " << particle.acol()
                               << std::endl;
             }
         }
