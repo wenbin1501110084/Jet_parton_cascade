@@ -49,7 +49,7 @@ int main(int argv, char* argc[])
 
     Pythia pythia;
     pythia.readString("Random:setSeed = on");
-    pythia.readString("Random:seed = 0");  
+    //pythia.readString("Random:seed = 0");  
     pythia.readString("Beams:eCM = 5020");
     pythia.readString("Beams:idA = 2212");
     pythia.readString("Beams:idB = 2212"); 

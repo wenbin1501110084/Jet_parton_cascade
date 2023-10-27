@@ -31,6 +31,7 @@ int main(int argv, char* argc[])
 {
     //string random_str = string(argc[1]);
     int n_event = atoi(argc[1]);
+    bool DO_Colorless_frag = false;
     string output_filename2;
     output_filename2 = "hadrons_frag1.dat";// output files of final hadrons
     cout << output_filename2 << endl;
@@ -97,7 +98,7 @@ int main(int argv, char* argc[])
 
     double hbarc = 0.19732;
     double c_px, c_py ,c_pz, c_e, c_m,c_x,c_y,c_z,c_t;
-    int c_id,tt;
+    int c_id,tt, c_col, c_acol;
     int acol_ip[5000]={0};
     int pp_collision=0;    //used for total cross section
     int  ccbar_num=0;
@@ -120,8 +121,8 @@ int main(int argv, char* argc[])
         int Ngluon=0;
         int Npair=0;
         for (int ll=0;ll<Npart;ll++) {
-                fscanf(infile1, "%d %lf %lf %lf %lf %lf %lf %lf %lf\n",
-                       &c_id, &c_px, &c_py, &c_pz, &c_m, &c_x, &c_y, &c_z, &c_t);
+                fscanf(infile1, "%d %lf %lf %lf %lf %lf %lf %lf %lf %d %d\n",
+                       &c_id, &c_px, &c_py, &c_pz, &c_m, &c_x, &c_y, &c_z, &c_t, &c_col, &c_acol);
                 Qmid = 0.0; // The scale for the parton shower. 
                 idpo[ll]=c_id;
                 if(c_id==21){gindex[Ngluon]=ll;Ngluon++;}
@@ -141,8 +142,10 @@ int main(int argv, char* argc[])
                 phio[ll]=atan2(c_py,c_px);
                 index[ll]=ll;
                 used[ll]=0;
+                nncol[ll] = c_col;
+                aacol[ll] = c_acol;
         }
-        
+       if (DO_Colorless_frag) {
         mmaxindex=searchmax(ptpo,index,Npart);// get the leading parton
         //**** all partons are gluon ****
         // add fictive quark anti-quark
@@ -434,7 +437,7 @@ int main(int argv, char* argc[])
             //cout<< nncol[apair[pp]]<<" "<<aacol[apair[pp]]<<" "<<idpo[apair[pp]]<<endl;
         }
         //cout<<"================================"<<endl;
-
+       }
 // ****************** append the partons into pythia event *********************//
         double m_str=0.0, x_str=0.0,y_str=0.0,z_str=0.0,t_str=0.0;
         double x_hadron,y_hadron,z_hadron,t_hadron,hmt;
@@ -461,6 +464,63 @@ int main(int argv, char* argc[])
             t_str=t_str+mass*ttpo[tt];
         }
         if(m_str==0)m_str=0.10;
+        
+        if (!DO_Colorless_frag) {
+            //first, find unpaired color and anticolor tags. 
+            std::vector<int> cols;
+            std::vector<int> acols;
+            for (unsigned int ipart = 0; ipart < Npart; ++ipart) {
+                if (idpo[ipart] == 22) continue;
+                if (nncol[ipart] != 0) cols.push_back(nncol[ipart]);
+                if (aacol[ipart] != 0) acols.push_back(aacol[ipart]);
+            }
+            //the outcomes are: 1-unpaired color tag, 2-unpaired anticolor tag, 3-both an unpaired color & anticolor tag, 4-no unpaired tags
+            //1-add an antiquark, 2-add a quark, 3-add a gluon, 4-add nothing (possibly photon only event)
+            int icol = 0;
+            while (icol < cols.size()) {
+                bool foundpair = false;
+                for (int iacol = 0; iacol < acols.size(); ++iacol) {
+                    if (cols[icol] == acols[iacol]) {
+                        cols.erase(cols.begin() + icol);
+                        acols.erase(acols.begin() + iacol);
+                        foundpair = true;
+                        continue;
+                    }
+                }
+                if (!foundpair) ++icol;
+            }
+        
+            double sign_added = -1.; double p_fake = 200.;
+            while (cols.size() >0 || acols.size() > 0) {
+                int pid = 0;
+                int color = 0;
+                int anti_color = 0;
+                if ((cols.size() > 0) && (acols.size() > 0)) {
+                    pid = 21;
+                    color = cols[0];
+                    anti_color = acols[0];
+                    cols.erase(cols.begin() );
+                    acols.erase(acols.begin());
+                } else if ((cols.size() > 0) && (acols.size() == 0)) {
+                    pid = -1;
+                    color = cols[0];
+                    anti_color = 0;
+                    cols.erase(cols.begin() );
+                } else if ((cols.size() == 0) && (acols.size() > 0)) {
+                    pid = 1;
+                    color = 0;
+                    anti_color = acols[0];
+                    acols.erase(acols.begin() );
+                }
+                if (pid != 0) {
+                    p_fake = sign_added * 1. * p_fake;
+                    pythia.event.append(pid, 62, anti_color, color, 0.2, 0.2, p_fake,
+                                        sqrt(p_fake * p_fake + 0.08));
+                    sign_added = sign_added * -1.;
+                }
+            }
+        }
+        
 //****** fragment the remnant partons ***********
         //pythia.forceTimeShower(1,Npart,maxQ0);//Continue the FSR to the defaulted scale 
         pythia.forceHadronLevel();
