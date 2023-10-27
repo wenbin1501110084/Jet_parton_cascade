@@ -819,8 +819,6 @@ cc      SAVE /frzprc/
 cc      SAVE /rndm3/
         common /para7/ ioscar,nsmm0,nsmb0,nsmab0,nsmm1,nsmb1,nsmab1
         COMMON /AREVT/ IAEVT, IARUN, MISS
-clin-10/2023 add color tracking:
-        COMMON /prec7/icolr0(MAXPTN,2),icolr(MAXPTN,2),icolr5(MAXPTN,2)
         SAVE   
         iseed=iseedp
 clin-6/06/02 local freezeout initialization:
@@ -866,12 +864,6 @@ clin-parentString:
            ystrg0(I) = ystrg(INDXI)
            istrg0(I) = istrg(INDXI)
 clin-7/09/01-end
-c
-clin-10/2023 add color tracking:
-           icolr(i,1) = icolr0(indxi,1)
-           icolr(i,2) = icolr0(indxi,2)
-           icolr5(i,1)=icolr(i,1)
-           icolr5(i,2)=icolr(i,2)
 c
 clin-6/06/02 local freezeout initialization:
          if(isoft.eq.5) then

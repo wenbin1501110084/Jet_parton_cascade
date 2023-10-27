@@ -212,7 +212,6 @@ clin-parentString:
         DOUBLE PRECISION vxp0,vyp0,vzp0,xstrg0,ystrg0,xstrg,ystrg
 
 cbz1/31/99end
-
         CHARACTER FRAME*8
         DIMENSION SCIP(300,300),RNIP(300,300),SJIP(300,300),JTP(3),
      &                        IPCOL(90000),ITCOL(90000)
@@ -328,10 +327,8 @@ clin-parentString:
         common /precpa/vxp0(MAXPTN),vyp0(MAXPTN),vzp0(MAXPTN),
      1       xstrg0(MAXPTN),ystrg0(MAXPTN),
      2       xstrg(MAXPTN),ystrg(MAXPTN),istrg0(MAXPTN),istrg(MAXPTN)
-clin-10/2023 add color tracking:
-        COMMON /prec7/icolr0(MAXPTN,2),icolr(MAXPTN,2),icolr5(MAXPTN,2)
         SAVE   
-
+        !PRINT *, ' EVENT dddd'
 clin-9/2023 for jet vn, go directly in front of ZPC:
         if(isoft.eq.4) then
            goto 274
@@ -1597,16 +1594,14 @@ c           WRITE (14, 512) ITYP5(I), PX5(I), PY5(I), PZ5(I),
 c     &        XMASS5(I), LSTRG1(I), LPART1(I), FT5(I)
            if(dmax1(abs(GX5(I)),abs(GY5(I)),abs(GZ5(I)),abs(FT5(I)))
      1          .lt.9999) then
-              write(14,213) ITYP5(I), PX5(I), PY5(I), PZ5(I), XMASS5(I),
-     1          GX5(I), GY5(I), GZ5(I), FT5(I),icolr5(I,1),icolr5(I,2)
+              write(14,210) ITYP5(I), PX5(I), PY5(I), PZ5(I), XMASS5(I),
+     1             GX5(I), GY5(I), GZ5(I), FT5(I)
            else
-              write(14,214) ITYP5(I), PX5(I), PY5(I), PZ5(I), XMASS5(I),
-     1          GX5(I), GY5(I), GZ5(I), FT5(I),icolr5(I,1),icolr5(I,2)
+              write(14,211) ITYP5(I), PX5(I), PY5(I), PZ5(I), XMASS5(I),
+     1             GX5(I), GY5(I), GZ5(I), FT5(I)
            endif
 c
  1016   CONTINUE
- 213    format(I6,3(1x,f9.3),1x,f6.3,4(1x,f8.2),I5,1x,I5)
- 214    format(I6,3(1x,f9.3),1x,f6.3,4(1x,e8.2),I5,1x,I5)
 c 511    FORMAT(1X, 3F10.4, I6, 2F10.4)
 c 512    FORMAT(I6,4(1X,F10.3),1X,I6,1X,I3,1X,F10.3)
 c 513    FORMAT(1X, 4F10.4)

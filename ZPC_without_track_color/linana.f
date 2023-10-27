@@ -3837,8 +3837,6 @@ c
      &     PX0(MAXPTN), PY0(MAXPTN), PZ0(MAXPTN), E0(MAXPTN),
      &     XMASS0(MAXPTN), ITYP0(MAXPTN)
       DIMENSION INDX(MAXPTN),FT0avg(MAXPTN)
-clin-10/2023 add color tracking:
-      COMMON /prec7/icolr0(MAXPTN,2),icolr(MAXPTN,2),icolr5(MAXPTN,2)
       SAVE   
 c
       do 350 ip=1,mul
@@ -3852,9 +3850,6 @@ c
          e0(ip)=e5(ip)
          XMASS0(ip)=XMASS5(ip)
          ITYP0(ip)=ITYP5(ip)
-clin-10/2023 add color tracking:
-         icolr0(ip,1)=icolr5(ip,1)
-         icolr0(ip,2)=icolr5(ip,2)
 ctest off:
 c         write(97,*) ip,PX5(ip),PY5(ip),PZ5(ip),E5(ip),XMASS5(ip),
 c     &        GX5(ip),GY5(ip),GZ5(ip),FT5(ip),ITYP5(ip)
@@ -3876,9 +3871,6 @@ c
          E5(ip) = E0(iindex)
          XMASS5(ip) = XMASS0(iindex)
          ITYP5(ip)=ITYP0(iindex)
-clin-10/2023 add color tracking:
-         icolr5(ip,1)=icolr0(iindex,1)
-         icolr5(ip,2)=icolr0(iindex,2)
 ctest off:
 c         write(98,*) ip,PX5(ip),PY5(ip),PZ5(ip),E5(ip),XMASS5(ip),
 c     &        GX5(ip),GY5(ip),GZ5(ip),FT5(ip),ITYP5(ip)
@@ -3904,17 +3896,13 @@ c      COMMON /ilist7/ LSTRG0(MAXPTN), LPART0(MAXPTN)
       common /precpa/vxp0(MAXPTN),vyp0(MAXPTN),vzp0(MAXPTN),
      1     xstrg0(MAXPTN),ystrg0(MAXPTN),
      2     xstrg(MAXPTN),ystrg(MAXPTN),istrg0(MAXPTN),istrg(MAXPTN)
-clin-10/2023 add color tracking:
-      COMMON /prec7/icolr0(MAXPTN,2),icolr(MAXPTN,2),icolr5(MAXPTN,2)
       SAVE   
 c
       READ (97,*)
       READ (97,*) nparton
       do 100 ipar=1,nparton
          READ (97,*) ityp0(ipar),px0(ipar),py0(ipar),pz0(ipar),e0(ipar),
-     1        gx0(ipar),gy0(ipar),gz0(ipar),ft0(ipar),
-     2        icolr0(ipar,1),icolr0(ipar,2)
-clin-10/2023 add color tracking above.
+     1        gx0(ipar),gy0(ipar),gz0(ipar),ft0(ipar)
          xmass0(ipar)=dble(ulmass(ityp0(ipar)))
 c     Recalculate e0 to take of finite accuracy of the input file:
          e0(ipar)=dsqrt(px0(ipar)**2+py0(ipar)**2+pz0(ipar)**2

@@ -1,12 +1,6 @@
 AMPT Users' Guide
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-10/2023 test version v1.31t1/2.31t5c (sent to Wenbin Zhao):
-     * Keep the original color indices of each parton
-       (the last two values of each parton line in zpc.dat)
-       despite elastic collisions.
-   The above modifications can be found by searching "clin-10/2023". 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 9/2023 test version v1.31t1/2.31t5 (sent to Wenbin Zhao):
      * Modified code to study jet flow with the string melting AMPT model.
        It will read parton shower info in input file 'parton_info.dat', 
