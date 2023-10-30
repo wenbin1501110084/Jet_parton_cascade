@@ -20,6 +20,10 @@ int main(int argc, char* argv[] )
     output_filename2 = "QAQB.dat";// output files of final hadrons
     string output_filenamench;
     output_filenamench = "Nch.dat";// output files of final hadrons
+    
+    string output_filenamencheta;
+    output_filenamencheta = "dNchdeta.dat";// output files of final hadrons
+    
 
     // Read the binary output
        const char* filename = argv[1];
@@ -51,9 +55,15 @@ int main(int argc, char* argv[] )
     double phi = 9999.;
     float temp, tempphi;
     double pTlab, philab, etalab;
+    double eta_dis[11][90]= {0.}; int eta_nevent_count[90] = {0};
     double QnAB_0p0_3[11][4] = {0.0}; double QnAB_0p3_3[11][4] = {0.0}; double QnAB_0p5_3[11][4] = {0.0};
     double bQnAB_0p0_3[11][4] = {0.0}; double bQnAB_0p3_3[11][4] = {0.0}; double bQnAB_0p5_3[11][4] = {0.0};
     double cQnAB_0p0_3[11][4] = {0.0}; double cQnAB_0p3_3[11][4] = {0.0}; double cQnAB_0p5_3[11][4] = {0.0};
+    
+    double AQnAB_0p0_3[11][4] = {0.0}; double AQnAB_0p3_3[11][4] = {0.0}; double AQnAB_0p5_3[11][4] = {0.0};
+    double AbQnAB_0p0_3[11][4] = {0.0}; double AbQnAB_0p3_3[11][4] = {0.0}; double AbQnAB_0p5_3[11][4] = {0.0};
+    double AcQnAB_0p0_3[11][4] = {0.0}; double AcQnAB_0p3_3[11][4] = {0.0}; double AcQnAB_0p5_3[11][4] = {0.0};
+    
     double meanpT[11][4] = {0.}; int meanpT_event[11][4] = {0};
     int Nchsum[11] = {0}; int Ncheventcount[11] = {0};
     //int MAMB_0_3[10] = {0}; int MAMB_0p3_3[10] = {0}; int MAMB_0p5_3[10] = {0}; 
@@ -71,11 +81,14 @@ int main(int argc, char* argv[] )
 
     while( InStream.read(reinterpret_cast<char*>(&total_number_of_particles), sizeof(int))) {
         Nchtemp = 0;
-      double QnA_0p0_3_real[roweta][4] = {0.}; double QnA_0p3_3_real[roweta][4] = {0.}; double QnA_0p5_3_real[roweta][4] = {0.}; 
-       double QnB_0p0_3_real[roweta][4] = {0.};double QnB_0p3_3_real[roweta][4] = {0.}; double QnB_0p5_3_real[roweta][4] = {0.}; 
+        double QnA_0p0_3_real[roweta][4] = {0.}; double QnA_0p3_3_real[roweta][4] = {0.}; double QnA_0p5_3_real[roweta][4] = {0.}; 
+        double QnB_0p0_3_real[roweta][4] = {0.};double QnB_0p3_3_real[roweta][4] = {0.}; double QnB_0p5_3_real[roweta][4] = {0.}; 
         double QnA_0p0_3_imag[roweta][4] = {0.}; double QnA_0p3_3_imag[roweta][4] = {0.};double QnA_0p5_3_imag[roweta][4] = {0.}; 
         double QnB_0p0_3_imag[roweta][4] = {0.}; double QnB_0p3_3_imag[roweta][4] = {0.}; double QnB_0p5_3_imag[roweta][4] = {0.}; 
         double meanpT_temp[4] = {0.};  double meanpT_event_temp[4] = {0};
+        
+        double eta_dis_temp[90]= {0.};
+        
         // Start one event
         for (auto i=0; i<total_number_of_particles; i++) {
             InStream.read(reinterpret_cast<char*>(&pid), sizeof(int));
@@ -114,6 +127,9 @@ int main(int argc, char* argv[] )
                 meanpT_event_temp[0] = meanpT_event_temp[0] +1;
                 meanpT_temp[0] = meanpT_temp[0] + pT;
                 Nchtemp =Nchtemp +1;
+                // Calculate the dNch/deta*
+                int binEta = static_cast<int>((eta - 0) / (9.0 - 0.0) * 90);
+                eta_dis_temp[binEta] = eta_dis_temp[binEta] + 1.0/0.1;
                 if (pT < 3.0) {
                     // pT > 0.5
                     int binDeltaEta = static_cast<int>((eta - minEta) / (maxEta - minEta) * roweta);
@@ -159,6 +175,8 @@ int main(int argc, char* argv[] )
             }
             }
         }
+        
+        
         if (Nchtemp <= 1) continue;
         //cout << Nchtemp << endl;
         if (Nchtemp < 500.) NchVector.push_back(Nchtemp);
@@ -167,11 +185,15 @@ int main(int argc, char* argv[] )
             if (Nchtemp > Nchbins[inch] && Nchtemp <= Nchbins[inch+1]) {
                 Ncheventcount[inch]++;
                 Nchsum[inch] = Nchsum[inch] + Nchtemp;
+                
+                for (int ieta=0; ieta<90; ieta++) {
+                    eta_dis[inch][ieta] = eta_dis[inch][ieta] + eta_dis_temp[ieta];
+                }
                 for (int iorder=0; iorder<4; iorder++) {
                     // Delta\eta = 2.0
                     double sumtep00 = 0.; double sumtep03 = 0.0; double sumtep05 = 0.;
-                    for (int ieta=0; ieta<(roweta - Deltaeta-1); ieta++) {
-                        for (int ietab=(ieta+Deltaeta+1); ietab<roweta; ietab++) {
+                    for (int ieta=0; ieta<(roweta - Deltaeta); ieta++) {
+                        for (int ietab=(ieta+Deltaeta); ietab<roweta; ietab++) {
                             sumtep00 = sumtep00 + QnA_0p0_3_real[ieta][iorder] * QnB_0p0_3_real[ietab][iorder] 
                                                 + QnA_0p0_3_imag[ieta][iorder] * QnB_0p0_3_imag[ietab][iorder];
                             sumtep03 = sumtep03 + QnA_0p3_3_real[ieta][iorder] * QnB_0p3_3_real[ietab][iorder] 
@@ -188,8 +210,8 @@ int main(int argc, char* argv[] )
                     
                     // Delta\eta = 1.0
                     sumtep00 = 0.; sumtep03 = 0.0; sumtep05 = 0.;
-                    for (int ieta=0; ieta<(roweta - Deltaeta-1+10); ieta++) {
-                        for (int ietab=(ieta+Deltaeta+1-10); ietab<roweta; ietab++) {
+                    for (int ieta=0; ieta<(roweta - Deltaeta+5); ieta++) {
+                        for (int ietab=(ieta+Deltaeta-5); ietab<roweta; ietab++) {
                             sumtep00 = sumtep00 + QnA_0p0_3_real[ieta][iorder] * QnB_0p0_3_real[ietab][iorder] 
                                                 + QnA_0p0_3_imag[ieta][iorder] * QnB_0p0_3_imag[ietab][iorder];
                             sumtep03 = sumtep03 + QnA_0p3_3_real[ieta][iorder] * QnB_0p3_3_real[ietab][iorder] 
@@ -206,8 +228,8 @@ int main(int argc, char* argv[] )
                     
                     // Delta\eta = 3.0
                     sumtep00 = 0.; sumtep03 = 0.0; sumtep05 = 0.;
-                    for (int ieta=0; ieta<(roweta - Deltaeta-1-10); ieta++) {
-                        for (int ietab=(ieta+Deltaeta+1+10); ietab<roweta; ietab++) {
+                    for (int ieta=0; ieta<(roweta - Deltaeta-5); ieta++) {
+                        for (int ietab=(ieta+Deltaeta+5); ietab<roweta; ietab++) {
                             sumtep00 = sumtep00 + QnA_0p0_3_real[ieta][iorder] * QnB_0p0_3_real[ietab][iorder] 
                                                 + QnA_0p0_3_imag[ieta][iorder] * QnB_0p0_3_imag[ietab][iorder];
                             sumtep03 = sumtep03 + QnA_0p3_3_real[ieta][iorder] * QnB_0p3_3_real[ietab][iorder] 
@@ -225,6 +247,62 @@ int main(int argc, char* argv[] )
                     
                     meanpT[inch][iorder]           = meanpT[inch][iorder] + meanpT_temp[iorder];
                     meanpT_event[inch][iorder]     = meanpT_event[inch][iorder] + meanpT_event_temp[iorder];
+                }
+                // Add +1 for bin effects
+                for (int iorder=0; iorder<4; iorder++) {
+                    // Delta\eta = 2.0
+                    double sumtep00 = 0.; double sumtep03 = 0.0; double sumtep05 = 0.;
+                    for (int ieta=0; ieta<(roweta - Deltaeta-1); ieta++) {
+                        for (int ietab=(ieta+Deltaeta+1); ietab<roweta; ietab++) {
+                            sumtep00 = sumtep00 + QnA_0p0_3_real[ieta][iorder] * QnB_0p0_3_real[ietab][iorder] 
+                                                + QnA_0p0_3_imag[ieta][iorder] * QnB_0p0_3_imag[ietab][iorder];
+                            sumtep03 = sumtep03 + QnA_0p3_3_real[ieta][iorder] * QnB_0p3_3_real[ietab][iorder] 
+                                                + QnA_0p3_3_imag[ieta][iorder] * QnB_0p3_3_imag[ietab][iorder];
+                            sumtep05 = sumtep05 + QnA_0p5_3_real[ieta][iorder] * QnB_0p5_3_real[ietab][iorder] 
+                                                + QnA_0p5_3_imag[ieta][iorder] * QnB_0p5_3_imag[ietab][iorder];
+                                                
+                        }
+                    }
+                    
+                    AQnAB_0p0_3[inch][iorder] = AQnAB_0p0_3[inch][iorder] + sumtep00;
+                    AQnAB_0p3_3[inch][iorder] = AQnAB_0p3_3[inch][iorder] + sumtep03;
+                    AQnAB_0p5_3[inch][iorder] = AQnAB_0p5_3[inch][iorder] + sumtep05;
+                    
+                    // Delta\eta = 1.0
+                    sumtep00 = 0.; sumtep03 = 0.0; sumtep05 = 0.;
+                    for (int ieta=0; ieta<(roweta - Deltaeta-1+5); ieta++) {
+                        for (int ietab=(ieta+Deltaeta+1-5); ietab<roweta; ietab++) {
+                            sumtep00 = sumtep00 + QnA_0p0_3_real[ieta][iorder] * QnB_0p0_3_real[ietab][iorder] 
+                                                + QnA_0p0_3_imag[ieta][iorder] * QnB_0p0_3_imag[ietab][iorder];
+                            sumtep03 = sumtep03 + QnA_0p3_3_real[ieta][iorder] * QnB_0p3_3_real[ietab][iorder] 
+                                                + QnA_0p3_3_imag[ieta][iorder] * QnB_0p3_3_imag[ietab][iorder];
+                            sumtep05 = sumtep05 + QnA_0p5_3_real[ieta][iorder] * QnB_0p5_3_real[ietab][iorder] 
+                                                + QnA_0p5_3_imag[ieta][iorder] * QnB_0p5_3_imag[ietab][iorder];
+                                                
+                        }
+                    }
+                    
+                    AbQnAB_0p0_3[inch][iorder] = AbQnAB_0p0_3[inch][iorder] + sumtep00;
+                    AbQnAB_0p3_3[inch][iorder] = AbQnAB_0p3_3[inch][iorder] + sumtep03;
+                    AbQnAB_0p5_3[inch][iorder] = AbQnAB_0p5_3[inch][iorder] + sumtep05;
+                    
+                    // Delta\eta = 3.0
+                    sumtep00 = 0.; sumtep03 = 0.0; sumtep05 = 0.;
+                    for (int ieta=0; ieta<(roweta - Deltaeta-1-5); ieta++) {
+                        for (int ietab=(ieta+Deltaeta+1+5); ietab<roweta; ietab++) {
+                            sumtep00 = sumtep00 + QnA_0p0_3_real[ieta][iorder] * QnB_0p0_3_real[ietab][iorder] 
+                                                + QnA_0p0_3_imag[ieta][iorder] * QnB_0p0_3_imag[ietab][iorder];
+                            sumtep03 = sumtep03 + QnA_0p3_3_real[ieta][iorder] * QnB_0p3_3_real[ietab][iorder] 
+                                                + QnA_0p3_3_imag[ieta][iorder] * QnB_0p3_3_imag[ietab][iorder];
+                            sumtep05 = sumtep05 + QnA_0p5_3_real[ieta][iorder] * QnB_0p5_3_real[ietab][iorder] 
+                                                + QnA_0p5_3_imag[ieta][iorder] * QnB_0p5_3_imag[ietab][iorder];
+                                                
+                        }
+                    }
+                    
+                    AcQnAB_0p0_3[inch][iorder] = AcQnAB_0p0_3[inch][iorder] + sumtep00;
+                    AcQnAB_0p3_3[inch][iorder] = AcQnAB_0p3_3[inch][iorder] + sumtep03;
+                    AcQnAB_0p5_3[inch][iorder] = AcQnAB_0p5_3[inch][iorder] + sumtep05;
                 }
             }
         }
@@ -258,6 +336,26 @@ int main(int argc, char* argv[] )
                     << cQnAB_0p3_3[inch][iorder] << "  "
                     << cQnAB_0p5_3[inch][iorder] << "  ";
         }
+        
+        for (int iorder=0; iorder<4; iorder++) {
+            output2 << AQnAB_0p0_3[inch][iorder] << "  "
+                    << AQnAB_0p3_3[inch][iorder] << "  "
+                    << AQnAB_0p5_3[inch][iorder] << "  ";
+        }
+        
+        for (int iorder=0; iorder<4; iorder++) {
+            output2 << AbQnAB_0p0_3[inch][iorder] << "  "
+                    << AbQnAB_0p3_3[inch][iorder] << "  "
+                    << AbQnAB_0p5_3[inch][iorder] << "  ";
+        }
+        
+        for (int iorder=0; iorder<4; iorder++) {
+            output2 << AcQnAB_0p0_3[inch][iorder] << "  "
+                    << AcQnAB_0p3_3[inch][iorder] << "  "
+                    << AcQnAB_0p5_3[inch][iorder] << "  ";
+        }
+        
+        
         output2 << Ncheventcount[inch] << "  " << Nchsum[inch];
         output2 << endl;
     }
@@ -271,9 +369,31 @@ int main(int argc, char* argv[] )
     for (int ii=0; ii<NchVector.size(); ii++) {
         outputnch << NchVector[ii] << endl;
     }
+    
+    ofstream outputncheta(output_filenamencheta.c_str()); 
+    if (!outputncheta.is_open() ) {
+        cout << "cannot open output file:"<< endl
+         << output_filenamencheta << endl;
+        return -1;
+    }
+    
+    for (int ii=0; ii<11; ii++) {
+        outputncheta << Ncheventcount[ii] << "  ";
+    }
+    outputncheta << endl;
+        
+    for (int ieta=0; ieta<90; ieta++) {
+        for (int ii=0; ii<11; ii++) {
+            outputncheta << eta_dis[ii][ieta] << "  ";
+        }
+        outputncheta << endl;
+    }
+    
+    
     NchVector.clear(); 
     output2.close();
     outputnch.close();
     InStream.close();
+    outputncheta.close();
 }
 
