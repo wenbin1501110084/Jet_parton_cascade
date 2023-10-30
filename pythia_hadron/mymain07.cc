@@ -66,7 +66,7 @@ int main(int argv, char* argc[])
     pythia.readString("SigmaTotal:mode = 0");
     pythia.readString("SigmaTotal:sigmaEl = 21.89");
     pythia.readString("SigmaTotal:sigmaTot = 100.309");
-    pythia.readString("PDF:pSet=LHAPDF6:NNPDF31_nnlo_as_0118");
+    //pythia.readString("PDF:pSet=LHAPDF6:NNPDF31_nnlo_as_0118");
     
     /*
     pythia.readString("PDF:useHard = on");
