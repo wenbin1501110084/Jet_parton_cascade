@@ -24,6 +24,9 @@ int main(int argc, char* argv[] )
     string output_filenamencheta;
     output_filenamencheta = "dNchdeta.dat";// output files of final hadrons
     
+    string output_filenamepnch;
+    output_filenamepnch = "pNch.dat";// output files of final hadrons
+    
 
     // Read the binary output
        const char* filename = argv[1];
@@ -66,6 +69,7 @@ int main(int argc, char* argv[] )
     
     double meanpT[11][4] = {0.}; int meanpT_event[11][4] = {0};
     int Nchsum[11] = {0}; int Ncheventcount[11] = {0};
+    int pNch[50] = {0};
     //int MAMB_0_3[10] = {0}; int MAMB_0p3_3[10] = {0}; int MAMB_0p5_3[10] = {0}; 
     std::vector<int> NchVector; 
     //double Nchbins[12] = {-1., 10., 20., 30., 40., 50., 60., 70., 80., 90., 100., 500.,}; 
@@ -181,6 +185,8 @@ int main(int argc, char* argv[] )
         //cout << Nchtemp << endl;
         if (Nchtemp < 500.) NchVector.push_back(Nchtemp);
         // Then Calculate the QAQB
+        int binNch = static_cast<int>(Nchtemp / 3);
+        if (binNch<50) pNch[binNch]++;
         for (auto inch=0; inch<11; inch++) {
             if (Nchtemp > Nchbins[inch] && Nchtemp <= Nchbins[inch+1]) {
                 Ncheventcount[inch]++;
@@ -382,6 +388,17 @@ int main(int argc, char* argv[] )
     }
     outputncheta << endl;
         
+    ofstream outputpnch(output_filenamepnch.c_str()); 
+    if (!outputpnch.is_open() ) {
+        cout << "cannot open output file:"<< endl
+         << output_filenamepnch << endl;
+        return -1;
+    }
+    for (int ii=0; ii<50; ii++) {
+        outputpnch << ii*3 << " " <<  ii*3 +3 << "  " << pNch[ii] << "  " << endl;
+    }
+    outputpnch << endl;
+    
     for (int ieta=0; ieta<90; ieta++) {
         for (int ii=0; ii<11; ii++) {
             outputncheta << eta_dis[ii][ieta] << "  ";
@@ -395,5 +412,6 @@ int main(int argc, char* argv[] )
     outputnch.close();
     InStream.close();
     outputncheta.close();
+    outputpnch.close();
 }
 
