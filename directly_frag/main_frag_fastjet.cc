@@ -37,6 +37,7 @@ int main(int argv, char* argc[])
 {
     //string random_str = string(argc[1]);
     int n_event = atoi(argc[1]);
+    int Nchcut = atoi(argc[2]);
     bool DO_Colorless_frag = false;
     string output_filename2;
     output_filename2 = "hadrons_frag1.dat";// output files of final hadrons
@@ -684,7 +685,7 @@ int main(int argv, char* argc[])
             output2 << "         " << iEvent << "      " << 0 << endl;
         }
         */
-        if (findMax(Nchevent) > 55) { //pre-select high Nch events
+        if (findMax(Nchevent) > Nchcut) { //pre-select high Nch events
             output << "# event id " << iEvent  <<  ", Number_of_parton  "  << std::endl;
             output << Npart << std::endl;
             for (int ll=0; ll < Npart; ll++) {
