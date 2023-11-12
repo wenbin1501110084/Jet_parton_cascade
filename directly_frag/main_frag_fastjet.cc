@@ -40,14 +40,24 @@ int main(int argv, char* argc[])
     bool DO_Colorless_frag = false;
     string output_filename2;
     output_filename2 = "hadrons_frag1.dat";// output files of final hadrons
-    cout << output_filename2 << endl;
     //string ramdomseed_str = "Random:seed = "+random_str;
     ofstream output2(output_filename2.c_str()); 
     if (!output2.is_open() ) {
         cout << "cannot open output file:"<< endl
          << output_filename2 << endl;
         return -1;
-    }   /*
+    }
+    string output_filename;
+    output_filename = "selected_parton/parton_info.dat";// output files of final hadrons
+    //string ramdomseed_str = "Random:seed = "+random_str;
+    ofstream output(output_filename.c_str()); 
+    if (!output.is_open() ) {
+        cout << "cannot open output file:"<< endl
+         << output_filename << endl;
+        return -1;
+    }
+    output << "# pdgid  px  py  pz  energy  x  y  z  t" << std::endl;
+     /*
 	output2<<"OSC1997A"<<endl;
 	output2<<"final_id_p_x"<<endl;
 	output2<<" 3DHydro       1.1  (197,    79)+(197,    79)  eqsp  0.1000E+03         1"<<endl;
@@ -108,7 +118,7 @@ int main(int argv, char* argc[])
     pythia.init();
 
     double hbarc = 0.19732;
-    double c_px, c_py ,c_pz, c_e, c_m,c_x,c_y,c_z,c_t;
+    double c_px, c_py ,c_pz, c_e, c_energy,c_x,c_y,c_z,c_t;
     int c_id,tt, c_col, c_acol;
     int acol_ip[5000]={0};
     int pp_collision=0;    //used for total cross section
@@ -141,6 +151,7 @@ int main(int argv, char* argc[])
         fgets(header2, sizeof(header2), infile1);
         
         fscanf(infile1,"%d\n",&Npart);
+        cout << iEvent << " " << Npart << endl;
         if (Npart==0 ) {output2 << "         " << iEvent <<"          " << 0  << endl; continue;}
         int Nquark=0;
         int Naquark =0;
@@ -152,7 +163,7 @@ int main(int argv, char* argc[])
                     break;
                 }
                 fscanf(infile1, "%d %lf %lf %lf %lf %lf %lf %lf %lf %d %d\n",
-                       &c_id, &c_px, &c_py, &c_pz, &c_m, &c_x, &c_y, &c_z, &c_t, &c_col, &c_acol);
+                       &c_id, &c_px, &c_py, &c_pz, &c_energy, &c_x, &c_y, &c_z, &c_t, &c_col, &c_acol);
                 //cout << c_id << endl;
                 Qmid = 0.0; // The scale for the parton shower. 
                 idpo[ll]=c_id;
@@ -162,7 +173,7 @@ int main(int argv, char* argc[])
                 pzpo[ll]=c_pz;
                 ptpo[ll]=c_px*c_px+c_py*c_py;
                 double pmg=sqrt(c_px*c_px+c_py*c_py+c_pz*c_pz);
-                epo[ll] = c_m;//sqrt(pmg * pmg + c_m*c_m);
+                epo[ll] = c_energy;//sqrt(pmg * pmg + c_energy*c_energy);
                 xxpo[ll]=c_x;
                 yypo[ll]=c_y;
                 zzpo[ll]=c_z;
@@ -666,13 +677,27 @@ int main(int argv, char* argc[])
                 }
             }
         }
+        /*
         if (Nchevent.size() > 0) {
            output2 << "         " << iEvent <<"          " << findMax(Nchevent) << endl;
         } else {
             output2 << "         " << iEvent << "      " << 0 << endl;
         }
+        */
+        if (findMax(Nchevent) > 55) { //pre-select high Nch events
+            output << "# event id " << iEvent  <<  ", Number_of_parton  "  << std::endl;
+            output << Npart << std::endl;
+            for (int ll=0; ll < Npart; ll++) {
+                output << idpo[ll] << "  " 
+                       << pxpo[ll] << "  " << pypo[ll] << "  " << pzpo[ll] << "  " << epo[ll] <<"  "
+                       << xxpo[ll] << "  "<< yypo[ll] << "  " << zzpo[ll] << "  " << ttpo[ll] << "  "
+                       << nncol[ll] << "  " << aacol[ll]
+                       << std::endl;
+            }
+        }
     }
     output2.close();
+    output.close();
     fclose(infile1);
     // End Pythia8
 }
