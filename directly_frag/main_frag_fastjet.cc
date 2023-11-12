@@ -8,6 +8,9 @@
 #include <algorithm>
 #include <vector>
 #include "Pythia8/Pythia.h" 
+#include "fastjet/ClusterSequence.hh"
+#include "fastjet/Selector.hh" 
+
 #define PI 3.1415926
 #define QQ0 1.0
 
@@ -20,8 +23,11 @@
 //*****************************
 
 using namespace Pythia8;
+using namespace fastjet;
+
 int searchmin(double*p, int *q,int*s,int len);
 int searchmax(double*p, int *q,int len);
+int findMax(std::vector<int>& vec);
 int searchmin2(double*p,int len);
 bool findarray(int*p,int len,int val);
 char infiles[128];
@@ -47,7 +53,7 @@ int main(int argv, char* argc[])
 	output2<<" 3DHydro       1.1  (197,    79)+(197,    79)  eqsp  0.1000E+03         1"<<endl;
 	*/
     FILE* infile1;
-    infile1 = fopen("zpc.dat","r");
+    infile1 = fopen("parton_info.dat","r");
 
     Pythia pythia;
     pythia.readString("Random:setSeed = on");
@@ -90,9 +96,14 @@ int main(int argv, char* argc[])
     pythia.readString("SigmaTotal:sigmaEl = 21.89");
     pythia.readString("SigmaTotal:sigmaTot = 100.309");
     pythia.readString(" StringFlav:probStoUD=0.50");
-    //pythia.readString("StringFlav:BtoMratio=0.5");
-    pythia.readString("StringFlav:probQQtoQ=0.34");
-    pythia.readString("HadronLevel:Decay = off");
+    //general CMS settings
+    pythia.readString("Check:epTolErr = 0.01");
+    pythia.readString("Beams:setProductionScalesFromLHEF = off");
+    pythia.readString("ParticleDecays:limitTau0 = on");
+    pythia.readString("ParticleDecays:tau0Max = 10");
+    pythia.readString("ParticleDecays:allowPhotonRadiation = on");
+    pythia.readString("111:mayDecay = off");//pion0
+    pythia.readString("HadronLevel:Decay = on");
     pythia.readString("HadronLevel:Hadronize = on");
     pythia.init();
 
@@ -113,15 +124,24 @@ int main(int argv, char* argc[])
     double pxp[10000]={0.0},pyp[10000]={0.0},pzp[10000]={0.0},ep[10000]={0.0},ptp[10000]={0.0},xxp[10000]={0.0},yyp[10000]={0.0},zzp[10000]={0.0},ttp[10000]={0.0},phi[10000]={0.0},distance[10000]={0.0},dsting[100][1000]={0.0},Qscale[10000]={0.0};//,mass[10000]={0.0};
     int nncol[10000]={0},aacol[10000]={0},index[10000]={0},qindex[10000]={0},aqindex[10000]={0},used[10000]={0},pair[1000]={0},apair[1000]={0},gindex[1000]={0},strings[100][1000]={0},Snum[1000]={0};//,nncol_mid[10000]={0},aacol_mid[10000]={0};
     // event loop
+    char header[256];
+    fgets(header, sizeof(header), infile1);
+    std::vector<int> Nchevent;
     int event_loop_flag = 1;
-    for (int iEvent=0; iEvent<n_event; iEvent++) {     
+    for (int iEvent=0; iEvent<n_event; iEvent++) {
         if(feof(infile1)) {
             event_loop_flag = 0;
             cout << " End the event loop ~~~ " << endl;
             break;
         }
-        fscanf(infile1,"%d %d %d %lf %d %d %d %d\n",&mid, &mid1, &Npart, &midd, &mid2, &mid3, &mid4, &midd5);
-        if (Npart==0 ) {output2 << "         " << iEvent <<"          " << 0 << "         0         0" << endl; continue;}
+        Nchevent.clear();     
+        // Read and ignore the first line starting with '#'
+        
+        char header2[256];
+        fgets(header2, sizeof(header2), infile1);
+        
+        fscanf(infile1,"%d\n",&Npart);
+        if (Npart==0 ) {output2 << "         " << iEvent <<"          " << 0  << endl; continue;}
         int Nquark=0;
         int Naquark =0;
         int Ngluon=0;
@@ -133,6 +153,7 @@ int main(int argv, char* argc[])
                 }
                 fscanf(infile1, "%d %lf %lf %lf %lf %lf %lf %lf %lf %d %d\n",
                        &c_id, &c_px, &c_py, &c_pz, &c_m, &c_x, &c_y, &c_z, &c_t, &c_col, &c_acol);
+                //cout << c_id << endl;
                 Qmid = 0.0; // The scale for the parton shower. 
                 idpo[ll]=c_id;
                 if(c_id==21){gindex[Ngluon]=ll;Ngluon++;}
@@ -141,7 +162,7 @@ int main(int argv, char* argc[])
                 pzpo[ll]=c_pz;
                 ptpo[ll]=c_px*c_px+c_py*c_py;
                 double pmg=sqrt(c_px*c_px+c_py*c_py+c_pz*c_pz);
-                epo[ll] = sqrt(pmg * pmg + c_m*c_m);
+                epo[ll] = c_m;//sqrt(pmg * pmg + c_m*c_m);
                 xxpo[ll]=c_x;
                 yypo[ll]=c_y;
                 zzpo[ll]=c_z;
@@ -154,10 +175,6 @@ int main(int argv, char* argc[])
                 used[ll]=0;
                 nncol[ll] = c_col;
                 aacol[ll] = c_acol;
-        }
-        if(event_loop_flag == 0) {
-            cout << " End the event loop and drop last event ~~~ " << endl;
-            break;
         }
        if (DO_Colorless_frag) {
         mmaxindex=searchmax(ptpo,index,Npart);// get the leading parton
@@ -561,9 +578,9 @@ int main(int argv, char* argc[])
         }
         //if(simble==0){output2 << iEvent+1<<" "<<simble << endl;}
         if (simble > 0) {
+           /*
             output2 << "         " << iEvent <<"          " << simble << "         0         0" << endl;
-            for(int i=0; i<pythia.event.size();i++)
-                {
+            for(int i=0; i<pythia.event.size();i++) {
                 if (pythia.event[i].isFinal() ){
                     c_id = pythia.event[i].id();
                     bool sss = findarray(pdgid,lenght, c_id);
@@ -584,14 +601,80 @@ int main(int argv, char* argc[])
                     }
                 }
             }
+            */
+            // *************** fastjet ******************** //
+            // parameter setting
+            // selection for final particles which are used to reconstruct jet
+            double absetamax = 2.4;
+            double particle_ptmin = 0.3; // CMS cut, CMS PAS HIN-21-013
+            // parameter setting
+            const double R_jet = 0.8; // CMS cut, CMS PAS HIN-21-013
+            const double jet_ptmin = 500.0;
+            double jet_absetamax = 1.6;
+    
+            //fastjet setting
+            // create a jet definition: 
+            // a jet algorithm with a given radius parameter
+            // select jet
+            fastjet::Selector jet_selector = fastjet::SelectorAbsEtaMax( jet_absetamax ) && fastjet::SelectorPtMin( jet_ptmin );
+    
+            // selection for final particles which are used to reconstruct jet
+            fastjet::Selector particle_selector = fastjet::SelectorAbsEtaMax(absetamax) && fastjet::SelectorPtMin( particle_ptmin );
+    
+            // Loop over events
+            vector<fastjet::PseudoJet> input_particles;
+            // First use the fastjet to pre-select the event with jet pT > 500 GeV at parton level
+            for (int i = 0; i < pythia.event.size(); i++) {
+                fastjet::PseudoJet particlefastjet = PseudoJet(pythia.event[i].px(), pythia.event[i].py(), pythia.event[i].pz(),
+                                                               pythia.event[i].e());
+                particlefastjet.set_user_index(pythia.event[i].id());
+                input_particles.push_back(particlefastjet);
+            }
+            input_particles = particle_selector(input_particles);
+        
+            // Then do the jet finding
+            fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, R_jet);
+            // select jet
+            //input_particles = particle_selector(input_particles);
+            fastjet::ClusterSequence clust_seq(input_particles, jet_def);
+            // get the resulting jets ordered in pt
+            vector<fastjet::PseudoJet> inclusive_jets = sorted_by_pt( jet_selector(clust_seq.inclusive_jets()) );
+        
+            if (inclusive_jets.size() == 0 || inclusive_jets[0].pt() < 550.) continue;
+            
+        
+            // Select the jet pT and output the selected events, rotate the jet at pz direction
+            for (unsigned int i = 0; i < inclusive_jets.size(); i++) {
+                // Select the jet with jet pT > 550 GeV/c.
+                if (inclusive_jets[i].pt() > 550.) {
+                    //njetevent_count++;
+                    double jx = inclusive_jets[i].px(); double jy = inclusive_jets[i].py(); double jz = inclusive_jets[i].pz();
+                    double theta = acos(jz/sqrt(jx*jx + jy*jy + jz*jz));
+                    double costheta = cos(theta);
+                    double sintheta = sin(theta);
+                    double rx = jy/sqrt(jx*jx + jy*jy); double ry =  -jx/sqrt(jx*jx + jy*jy); double rz =  0.;
+
+                    vector<fastjet::PseudoJet> constituents = inclusive_jets[i].constituents();
+                    //output << njetevent_count << "  " << constituents.size() << endl; 
+                    int Nparticle = 0;
+                    for (unsigned int jj=0; jj<constituents.size(); jj++){
+                        if (constituents[jj].pt() > 0.3 && abs(constituents[jj].eta()) < 2.4 && 
+                            (abs(constituents[jj].user_index()) ==211 || abs(constituents[jj].user_index()) ==321 || 
+                             abs(constituents[jj].user_index()) ==2212) ) Nparticle ++;
+                    }
+                    Nchevent.push_back(Nparticle);
+                }
+            }
         }
-        pythia.next();
-
-}
-output2.close();
-fclose(infile1);
-
-  return 0;
+        if (Nchevent.size() > 0) {
+           output2 << "         " << iEvent <<"          " << findMax(Nchevent) << endl;
+        } else {
+            output2 << "         " << iEvent << "      " << 0 << endl;
+        }
+    }
+    output2.close();
+    fclose(infile1);
+    // End Pythia8
 }
 
 int searchmin(double*p,int*q,int*s,int len)
@@ -624,6 +707,25 @@ int searchmax(double*p,int*q,int len)
     }
     return q[k];
 } 
+
+int findMax(std::vector<int>& vec) {
+    if (vec.empty()) {
+        // Handle the case where the vector is empty.
+        std::cerr << "Error: Empty vector\n";
+        return -1;  // You can choose a different value or use an exception.
+    }
+
+    int max = vec[0];  // Assume the first element is the maximum.
+
+    for (int i = 1; i < vec.size(); ++i) {
+        if (vec[i] > max) {
+            max = vec[i];  // Update the maximum value.
+        }
+    }
+
+    return max;
+}
+
 
 // check particle ID
 bool findarray(int*p, int len,int val)
