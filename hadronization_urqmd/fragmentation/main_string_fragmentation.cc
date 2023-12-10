@@ -89,11 +89,19 @@ int main(int argv, char* argc[])
     pythia.readString("SigmaTotal:mode = 0");
     pythia.readString("SigmaTotal:sigmaEl = 21.89");
     pythia.readString("SigmaTotal:sigmaTot = 100.309");
-    pythia.readString(" StringFlav:probStoUD=0.50");
+    //pythia.readString(" StringFlav:probStoUD=0.50");
     //pythia.readString("StringFlav:BtoMratio=0.5");
-    pythia.readString("StringFlav:probQQtoQ=0.34");
-    pythia.readString("HadronLevel:Decay = off");
+    //pythia.readString("StringFlav:probQQtoQ=0.34");
+    //general CMS settings
+    pythia.readString("Check:epTolErr = 0.01");
+    pythia.readString("Beams:setProductionScalesFromLHEF = off");
+    pythia.readString("ParticleDecays:limitTau0 = on");
+    pythia.readString("ParticleDecays:tau0Max = 10");
+    pythia.readString("ParticleDecays:allowPhotonRadiation = on");
+    pythia.readString("111:mayDecay = off");//pion0
+    pythia.readString("HadronLevel:Decay = on");
     pythia.readString("HadronLevel:Hadronize = on");
+
     pythia.init();
 
     double hbarc = 0.19732;
@@ -573,11 +581,22 @@ int main(int argv, char* argc[])
                         cbar_meson_pz = pythia.event[i].pz();
                         cbar_meson_energy = pythia.event[i].e();
                         // get the posistion of the final hadrons
+                        /*
                         hmt=(pythia.event[i].m()*pythia.event[i].m()+cbar_meson_px*cbar_meson_px+cbar_meson_py*cbar_meson_py);
                         x_hadron=x_str/m_str+hbarc*cbar_meson_px/hmt;
                         y_hadron=y_str/m_str+hbarc*cbar_meson_py/hmt;
                         z_hadron=z_str/m_str+hbarc*cbar_meson_pz/hmt;
                         t_hadron=t_str/m_str+hbarc*cbar_meson_energy/hmt;
+                        */
+                        // Asign 1fm for each hadrons in their local rest frame
+                        double v2_2_boost = (cbar_meson_px * cbar_meson_px + cbar_meson_py * cbar_meson_py +
+                                             cbar_meson_pz * cbar_meson_pz) / (cbar_meson_energy * cbar_meson_energy);
+                        double gamma_boost = 1./sqrt(1. - v2_2_boost);
+                        x_hadron=x_str/m_str + gamma_boost*cbar_meson_px/cbar_meson_energy;
+                        y_hadron=y_str/m_str + gamma_boost*cbar_meson_py/cbar_meson_energy;
+                        z_hadron=z_str/m_str + gamma_boost*cbar_meson_pz/cbar_meson_energy;
+                        t_hadron=t_str/m_str + gamma_boost;
+                        
 			output2 << "         " << i <<"        "<<c_id<<"    "<<cbar_meson_px<<"    "<<cbar_meson_py<<"    "<<cbar_meson_pz
 			        << "    " << cbar_meson_energy <<"    "<< pythia.event[i].m() 
 			        << "    " << x_hadron <<"    "<< y_hadron <<"    "<< z_hadron <<"    "<< t_hadron <<endl;
@@ -653,4 +672,4 @@ int searchmin2(double*p,int len)
     }
     return k;
 } 
-    
+
