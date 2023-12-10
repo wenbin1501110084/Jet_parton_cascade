@@ -573,7 +573,7 @@ int main(int argv, char* argc[])
                         cbar_meson_pz = pythia.event[i].pz();
                         cbar_meson_energy = pythia.event[i].e();
                         // get the posistion of the final hadrons
-                        hmt=sqrt(pythia.event[i].m()*pythia.event[i].m()+cbar_meson_px*cbar_meson_px+cbar_meson_py*cbar_meson_py);
+                        hmt=(pythia.event[i].m()*pythia.event[i].m()+cbar_meson_px*cbar_meson_px+cbar_meson_py*cbar_meson_py);
                         x_hadron=x_str/m_str+hbarc*cbar_meson_px/hmt;
                         y_hadron=y_str/m_str+hbarc*cbar_meson_py/hmt;
                         z_hadron=z_str/m_str+hbarc*cbar_meson_pz/hmt;
