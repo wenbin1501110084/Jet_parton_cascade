@@ -99,7 +99,7 @@ int main(int argv, char* argc[])
     pythia.readString("ParticleDecays:tau0Max = 10");
     pythia.readString("ParticleDecays:allowPhotonRadiation = on");
     pythia.readString("111:mayDecay = off");//pion0
-    pythia.readString("HadronLevel:Decay = on");
+    pythia.readString("HadronLevel:Decay = off");
     pythia.readString("HadronLevel:Hadronize = on");
 
     pythia.init();
@@ -141,13 +141,21 @@ int main(int argv, char* argc[])
                 }
                 fscanf(infile1, "%d %lf %lf %lf %lf %lf %lf %lf %lf %d %d\n",
                        &c_id, &c_px, &c_py, &c_pz, &c_m, &c_x, &c_y, &c_z, &c_t, &c_col, &c_acol);
-                Qmid = 0.0; // The scale for the parton shower. 
+                Qmid = 0.0; // The scale for the parton shower.
+                if (std::isnan(c_x)) c_x = 0.0; 
+                if (std::isnan(c_y)) c_y = 0.0;
+                if (std::isnan(c_z)) c_z = 0.0;
+                if (std::isnan(c_t)) c_t = 0.0;
                 idpo[ll]=c_id;
                 if(c_id==21){gindex[Ngluon]=ll;Ngluon++;}
                 pxpo[ll]=c_px;
                 pypo[ll]=c_py;
                 pzpo[ll]=c_pz;
                 ptpo[ll]=c_px*c_px+c_py*c_py;
+                if (abs(c_id) == 1) c_m = 0.33;
+                if (abs(c_id) == 2) c_m = 0.33;
+                if (abs(c_id) == 3) c_m = 0.5;
+                if (abs(c_id) == 4) c_m = 1.5;
                 double pmg=sqrt(c_px*c_px+c_py*c_py+c_pz*c_pz);
                 epo[ll] = sqrt(pmg * pmg + c_m*c_m);
                 xxpo[ll]=c_x;
@@ -467,6 +475,10 @@ int main(int argv, char* argc[])
         double maxQ0 = 2.0;//maxQ0>=QQ0; wenbin 
         double minQ0 = 0.4;//minum Q0;
         pythia.event.reset();
+        double maxt = 0.;
+        for (int tt=0;tt<Npart;tt++){
+            if (maxt < ttpo[tt])maxt = ttpo[tt];
+        }
         for (int tt=0;tt<Npart;tt++){
             if(idpo[tt]==21){mass=0.0;}
             else{
@@ -480,12 +492,17 @@ int main(int argv, char* argc[])
             //pythia.event[tt].scale(Qscale[tt]);//QQ0 the initial scale of input partons 
             // get the center of mass of the strings and corresponding posistion 
             m_str=m_str+mass;
-            x_str=x_str+mass*xxpo[tt];
-            y_str=y_str+mass*yypo[tt];
-            z_str=z_str+mass*zzpo[tt];
-            t_str=t_str+mass*ttpo[tt];
+            //x_str=x_str+epo[tt]*xxpo[tt];
+            //y_str=y_str+epo[tt]*yypo[tt];
+            //z_str=z_str+epo[tt]*zzpo[tt];
+            //t_str=t_str+epo[tt]*ttpo[tt];
+            x_str=x_str +  mass*xxpo[tt];
+            y_str=y_str + mass*yypo[tt];
+            z_str=z_str + mass*zzpo[tt];
+            t_str=t_str + mass * ttpo[tt];
         }
-        if(m_str==0)m_str=0.10;
+        //t_str = maxt;
+        if(m_str==0.0)m_str=0.10;
         
         if (!DO_Colorless_frag) {
             //first, find unpaired color and anticolor tags. 
@@ -512,7 +529,7 @@ int main(int argv, char* argc[])
                 if (!foundpair) ++icol;
             }
         
-            double sign_added = -1.; double p_fake = 200.;
+            double sign_added = -1.; double p_fake = 0.1;
             while (cols.size() >0 || acols.size() > 0) {
                 int pid = 0;
                 int color = 0;
@@ -536,7 +553,7 @@ int main(int argv, char* argc[])
                 }
                 if (pid != 0) {
                     p_fake = sign_added * 1. * p_fake;
-                    pythia.event.append(pid, 62, anti_color, color, 0.2, 0.2, p_fake,
+                    pythia.event.append(pid, 62, anti_color, color, 0.1, 0.1, p_fake,
                                         sqrt(p_fake * p_fake + 0.08));
                     sign_added = sign_added * -1.;
                 }
@@ -580,23 +597,81 @@ int main(int argv, char* argc[])
                         cbar_meson_py = pythia.event[i].py();
                         cbar_meson_pz = pythia.event[i].pz();
                         cbar_meson_energy = pythia.event[i].e();
-                        // get the posistion of the final hadrons
-                        /*
-                        hmt=(pythia.event[i].m()*pythia.event[i].m()+cbar_meson_px*cbar_meson_px+cbar_meson_py*cbar_meson_py);
-                        x_hadron=x_str/m_str+hbarc*cbar_meson_px/hmt;
-                        y_hadron=y_str/m_str+hbarc*cbar_meson_py/hmt;
-                        z_hadron=z_str/m_str+hbarc*cbar_meson_pz/hmt;
-                        t_hadron=t_str/m_str+hbarc*cbar_meson_energy/hmt;
-                        */
-                        // Asign 1fm for each hadrons in their local rest frame
-                        double v2_2_boost = (cbar_meson_px * cbar_meson_px + cbar_meson_py * cbar_meson_py +
-                                             cbar_meson_pz * cbar_meson_pz) / (cbar_meson_energy * cbar_meson_energy);
-                        double gamma_boost = 1./sqrt(1. - v2_2_boost);
-                        x_hadron=x_str/m_str + gamma_boost*cbar_meson_px/cbar_meson_energy;
-                        y_hadron=y_str/m_str + gamma_boost*cbar_meson_py/cbar_meson_energy;
-                        z_hadron=z_str/m_str + gamma_boost*cbar_meson_pz/cbar_meson_energy;
-                        t_hadron=t_str/m_str + gamma_boost;
+                        /* 
+                        Vec4 pCoM = pythia.event[i].p();
                         
+                        //Vec4 xcom = {x_str/m_str, y_str/m_str, z_str/m_str, t_str/m_str};
+                        Vec4 xcom = {0.0, 0.0, 0.0, 0.0};
+                        xcom.bstback(pCoM);
+                        double newt = xcom.e() +1.0;
+                        xcom =  {xcom.px(), xcom.py(), xcom.pz(), newt};
+                        xcom.bst(pCoM);
+                        */
+                        //pCoM.bstback(pCoM);
+                        //cout << pCoM.px() << " " << pCoM.py() << " " << pCoM.pz() << " " << pCoM.e() << endl;
+                        
+                        // get the posistion of the final hadrons
+                        
+                        //hmt=(pythia.event[i].m()*pythia.event[i].m()+cbar_meson_px*cbar_meson_px+cbar_meson_py*cbar_meson_py);
+                        
+                        int m1index, m2index, m1col, m1acol, m2col, m2acol;
+                        m1col = pythia.event[pythia.event[i].mother1()].col();
+                        m1acol = pythia.event[pythia.event[i].mother1()].acol();
+                        m2col = pythia.event[pythia.event[i].mother2()].col();
+                        m2acol = pythia.event[pythia.event[i].mother2()].acol();
+                        //cout << pythia.event[i].mother1() << " " << pythia.event[i].mother2() << endl;
+                        //cout << pythia.event[pythia.event[i].mother2()].id() << "  " << pythia.event[pythia.event[i].mother2()].px() << endl;
+                        // Find its mother partons
+                        if ( m1col != 0) {
+                            for (int im=0; im < Npart; im++ ) {
+                                if (m1col == nncol[im]) {
+                                    m1index = im;
+                                    break;
+                                }
+                            }
+                        } else {
+                            for (int im=0; im < Npart; im++ ) {
+                                if (m1acol == aacol[im]) {
+                                    m1index = im;
+                                    break;
+                                }
+                            }
+                        }
+                        // m2
+                        if ( m2col != 0) {
+                            for (int im=0; im < Npart; im++ ) {
+                                if (m2col == nncol[im]) {
+                                    m2index = im;
+                                    break;
+                                }
+                            }
+                        } else {
+                            for (int im=0; im < Npart; im++ ) {
+                                if (m2acol == aacol[im]) {
+                                    m2index = im;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        
+                        //cout << m1index << " " << xxpo[m1index] << " " << pxpo[m1index] << "  " 
+                        //     <<  m2index << " " << xxpo[m2index] << " " << pxpo[m2index] << endl;
+                        
+                        hmt=(pythia.event[i].m()*pythia.event[i].m()+cbar_meson_px*cbar_meson_px+cbar_meson_py*cbar_meson_py);
+                        x_hadron = xxpo[m1index]/2. + xxpo[m2index]/2. + hbarc*cbar_meson_px/hmt;
+                        y_hadron = yypo[m1index]/2. + yypo[m2index]/2. + hbarc*cbar_meson_py/hmt;
+                        z_hadron = zzpo[m1index]/2. + zzpo[m2index]/2. + hbarc*cbar_meson_pz/hmt;
+                        t_hadron = ttpo[m1index]/2. + ttpo[m2index]/2. +  hbarc*cbar_meson_energy/hmt;
+                        
+                        // To protect the nan values in x, y, z, t
+                        if (std::isnan(x_hadron)) x_hadron = 0.0;
+                        if (std::isnan(y_hadron)) y_hadron = 0.0;
+                        if (std::isnan(z_hadron)) z_hadron = 0.0;
+                        if (std::isnan(t_hadron)) t_hadron = 0.0; 
+                        // Asign 1fm for each hadrons in their local rest frame
+                       //t_hadron = xcom.e(); x_hadron = xcom.px(); y_hadron = xcom.py(); z_hadron = xcom.pz();
+                       //t_hadron = 0.0; x_hadron = 0.0; y_hadron = 0.0; z_hadron = 0.0;
 			output2 << "         " << i <<"        "<<c_id<<"    "<<cbar_meson_px<<"    "<<cbar_meson_py<<"    "<<cbar_meson_pz
 			        << "    " << cbar_meson_energy <<"    "<< pythia.event[i].m() 
 			        << "    " << x_hadron <<"    "<< y_hadron <<"    "<< z_hadron <<"    "<< t_hadron <<endl;
