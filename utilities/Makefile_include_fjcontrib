@@ -1,0 +1,26 @@
+GCC=g++
+
+
+PYTHIAINC=${shell /home/wenbin/Downloads/Wenbin_working/Work/Berkeley_work/v2_in_jet/parton_shower_in_pythia8/pythia8310/bin/pythia8-config --includedir}
+PYTHIALIBS=${shell /home/wenbin/Downloads/Wenbin_working/Work/Berkeley_work/v2_in_jet/parton_shower_in_pythia8/pythia8310/bin/pythia8-config --libdir}
+
+
+FASTJETINC=${shell /home/wenbin/Downloads/Wenbin_working/Work/Berkeley_work/v2_in_jet/Fasej_jet/fastjet_install/bin/fastjet-config --cxxflags}
+FASTJETLIBS=${shell /home/wenbin/Downloads/Wenbin_working/Work/Berkeley_work/v2_in_jet/Fasej_jet/fastjet_install/bin/fastjet-config --libs}
+
+FASTJETINC2=-I/home/wenbin/Downloads/Wenbin_working/Work/Berkeley_work/v2_in_jet/Fasej_jet/fastjet_install//include
+FASTJETLIBS2=-L/home/wenbin/Downloads/Wenbin_working/Work/Berkeley_work/v2_in_jet/Fasej_jet/fastjet_install//lib -lRecursiveTools
+
+
+EXE=test
+all: $(EXE)
+
+test.o: test.cc
+	$(GCC) -I$(PYTHIAINC) $(ROOTINC) $(FASTJETINC) $(FASTJETINC2) -c test.cc
+
+$(EXE): test.o
+	$(GCC) -O3 -I$(PYTHIAINC) $(ROOTINC) $(FASTJETINC) $(FASTJETINC2) -o $(EXE) test.o $(PYTHIALIBS)/libpythia8.a $(ROOTLIBS) -ldl  -lRecursiveTools $(FASTJETLIBS) $(FASTJETLIBS2)
+
+.PHONY:clean
+clean:
+	-rm *.o $(EXE)	
